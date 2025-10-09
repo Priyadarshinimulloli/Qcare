@@ -45,30 +45,50 @@ const Home = () => {
     }
   }, [navigate]);
 
-  // Real-time queue monitoring
+  // Real-time queue monitoring with enhanced error handling and reconnection
   useEffect(() => {
     if (!queueId || !hospital || !department || !realTimeUpdates) return;
 
     console.log("Setting up real-time queue monitoring...");
 
+    // Firebase query without orderBy to avoid composite index requirement
+    // Using client-side sorting for better compatibility
     const queueQuery = query(
       collection(db, "queues"),
       where("hospital", "==", hospital),
       where("department", "==", department),
-      where("status", "in", ["waiting", "called"]),
-      orderBy("timestamp", "asc")
+      where("status", "in", ["waiting", "called", "in-progress"])
     );
 
     const unsubscribe = onSnapshot(queueQuery, (snapshot) => {
       const queueList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      }))
+      // Filter for real data only to ensure accurate position calculations
+      .filter(patient => 
+        patient.name && 
+        patient.hospital && 
+        patient.department && 
+        patient.contact && 
+        patient.name.length > 1 && 
+        patient.patientId &&
+        !patient.name.toLowerCase().includes('test') &&
+        !patient.name.toLowerCase().includes('demo') &&
+        !patient.name.toLowerCase().includes('sample')
+      );
 
-      console.log("Raw queue data:", queueList.length, "items");
+      console.log(`Raw queue data: ${snapshot.docs.length} total, ${queueList.length} real patients`);
+
+      // Sort by timestamp first (client-side sorting to avoid composite index requirement)
+      const sortedByTime = queueList.sort((a, b) => {
+        const aTime = a.timestamp?.seconds || 0;
+        const bTime = b.timestamp?.seconds || 0;
+        return aTime - bTime;
+      });
 
       // Sort queue by priority
-      const sortedQueue = sortQueueByPriority(queueList);
+      const sortedQueue = sortQueueByPriority(sortedByTime);
       
       console.log("Sorted queue:", sortedQueue.map(q => `${q.customQueueId}: ${q.priority?.name} (${q.priorityScore})`));
 
@@ -91,26 +111,65 @@ const Home = () => {
           }
         }
         
-        setPosition(currentPatient.currentPosition);
-        setEstimatedTime(calculateEstimatedWaitTime(
-          currentPatient.currentPosition, 
+        // Update position and estimated time with real-time data
+        setPosition(currentPatient.currentPosition || currentPatient.queuePosition);
+        setEstimatedTime(currentPatient.estimatedWaitTime || calculateEstimatedWaitTime(
+          currentPatient.currentPosition || currentPatient.queuePosition, 
           currentPatient.priority?.name || 'Standard'
         ));
         setQueueStatus(currentPatient.status);
 
-        console.log(`Queue updated - Position: ${currentPatient.currentPosition}, Priority: ${currentPatient.priority?.name}, Status: ${currentPatient.status}`);
+        console.log(`Queue updated - Position: ${currentPatient.currentPosition || currentPatient.queuePosition}, Priority: ${currentPatient.priority?.name}, Status: ${currentPatient.status}`);
+        
+        // Check for status changes that require patient attention
+        if (currentPatient.status === 'called' && queueStatus !== 'called') {
+          setNotifications(prev => [...prev, {
+            type: 'status_change',
+            message: '🔔 You have been called! Please proceed to the department.',
+            priority: 'urgent',
+            timestamp: new Date().toLocaleTimeString()
+          }]);
+        }
       } else {
-        console.log("Patient not found in current queue - may have been completed");
+        // Patient might have been completed - check with more comprehensive query
+        const completedQuery = query(
+          collection(db, "queues"),
+          where("hospital", "==", hospital),
+          where("department", "==", department),
+          where("status", "==", "completed")
+        );
+        
+        getDocs(completedQuery).then(completedSnapshot => {
+          const completedPatient = completedSnapshot.docs.find(doc => doc.id === queueId);
+          if (completedPatient) {
+            setQueueStatus("completed");
+            setNotifications(prev => [...prev, {
+              type: 'completed',
+              message: '✅ Your appointment has been completed. Thank you!',
+              priority: 'success',
+              timestamp: new Date().toLocaleTimeString()
+            }]);
+            console.log("Patient has been marked as completed");
+          } else {
+            console.log("Patient not found in current queue - may have been removed");
+          }
+        });
       }
     }, (error) => {
       console.error("Error monitoring queue:", error);
+      setNotifications(prev => [...prev, {
+        type: 'error',
+        message: 'Connection issue detected. Retrying...',
+        priority: 'warning',
+        timestamp: new Date().toLocaleTimeString()
+      }]);
     });
 
     return () => {
       console.log("Cleaning up queue monitoring...");
       unsubscribe();
     };
-  }, [queueId, hospital, department, realTimeUpdates, avgTimePerPatient]);
+  }, [queueId, hospital, department, realTimeUpdates, position, queueStatus]);
 
   const handleLogout = async () => {
     try {
@@ -393,11 +452,19 @@ const Home = () => {
             <div className="queue-details">
               <div className="queue-details-header">
                 <h3>Your Queue Details</h3>
-                <div className={`queue-status ${queueStatus}`}>
-                  {queueStatus === "waiting" && "Waiting"}
-                  {queueStatus === "called" && "Called - Please proceed"}
-                  {queueStatus === "in-progress" && "In Progress"}
-                  {queueStatus === "completed" && "Completed"}
+                <div className="queue-status-container">
+                  <div className={`queue-status ${queueStatus}`}>
+                    {queueStatus === "waiting" && "⏳ Waiting"}
+                    {queueStatus === "called" && "📞 Called - Please proceed"}
+                    {queueStatus === "in-progress" && "👨‍⚕️ In Progress"}
+                    {queueStatus === "completed" && "✅ Completed"}
+                  </div>
+                  {realTimeUpdates && (
+                    <div className="real-time-indicator">
+                      <div className="pulse-dot"></div>
+                      <span>Live Updates</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

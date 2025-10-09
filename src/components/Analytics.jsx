@@ -83,11 +83,24 @@ const Analytics = () => {
   };
 
   const updateRealTimeStats = (queues) => {
-    const active = queues.filter(q => q.status === 'waiting').length;
-    const completed = queues.filter(q => q.status === 'completed').length;
+    // Filter for real data only
+    const realQueues = queues.filter(queue => 
+      queue.name && 
+      queue.hospital && 
+      queue.department && 
+      queue.contact && 
+      queue.name.length > 1 && 
+      queue.patientId &&
+      !queue.name.toLowerCase().includes('test') &&
+      !queue.name.toLowerCase().includes('demo') &&
+      !queue.name.toLowerCase().includes('sample')
+    );
+
+    const active = realQueues.filter(q => q.status === 'waiting').length;
+    const completed = realQueues.filter(q => q.status === 'completed').length;
     
     // Calculate average processing time for completed queues
-    const completedToday = queues.filter(q => 
+    const completedToday = realQueues.filter(q => 
       q.status === 'completed' && 
       q.completedAt && 
       isToday(new Date(q.completedAt))
@@ -101,14 +114,16 @@ const Analytics = () => {
       : 0;
 
     // Calculate efficiency (completed vs total)
-    const efficiency = queues.length > 0 ? (completed / queues.length) * 100 : 0;
+    const efficiency = realQueues.length > 0 ? (completed / realQueues.length) * 100 : 0;
 
     setRealTimeStats({
       currentPatients: active,
       avgProcessingTime: Math.round(avgProcessing),
       efficiency: Math.round(efficiency),
-      peakHours: calculatePeakHours(queues)
+      peakHours: calculatePeakHours(realQueues)
     });
+
+    console.log(`📊 Real-time stats: ${active} active, ${completed} completed from ${realQueues.length} real patients`);
   };
 
   const calculatePeakHours = (queues) => {
@@ -144,7 +159,22 @@ const Analytics = () => {
         id: doc.id,
         ...doc.data(),
         date: doc.data().timestamp ? new Date(doc.data().timestamp.seconds * 1000) : new Date()
-      })).filter(queue => queue.date >= startDate);
+      }))
+      .filter(queue => {
+        // Filter for real data only - exclude incomplete or test entries
+        return queue.date >= startDate &&
+               queue.name && // Must have patient name
+               queue.hospital && // Must have hospital
+               queue.department && // Must have department
+               queue.contact && // Must have contact info
+               queue.name.length > 1 && // Name must be meaningful
+               queue.patientId && // Must have patient ID (authenticated user)
+               !queue.name.toLowerCase().includes('test') && // Exclude test entries
+               !queue.name.toLowerCase().includes('demo') && // Exclude demo entries
+               !queue.name.toLowerCase().includes('sample'); // Exclude sample entries
+      });
+
+      console.log(`📊 Analytics: Filtered ${allQueues.length} real patient records from ${snapshot.docs.length} total records`);
 
       // Calculate basic stats
       const total = allQueues.length;
