@@ -1,0 +1,10 @@
+.ai-root { max-width:820px; margin:12px auto; }
+.ai-panel { background: white; padding:12px; border-radius:12px; box-shadow: 0 8px 30px rgba(2,6,23,0.06); }
+.ai-messages { max-height:360px; overflow:auto; display:flex; flex-direction:column; gap:8px; padding:8px; }
+.ai-msg { padding:10px; border-radius:10px; max-width:80%; }
+.ai-msg.user { align-self:flex-end; background:linear-gradient(90deg,#06b6d4,#2563eb); color:white; }
+.ai-msg.bot { align-self:flex-start; background:#f1f5f9; color:#0f172a; }
+.ai-input-row { display:flex; gap:8px; margin-top:8px; }
+.ai-input { flex:1; padding:10px; border-radius:10px; border:1px solid #e6eef7; }
+.ai-send { padding:10px 12px; border-radius:10px; background:linear-gradient(90deg,#06b6d4,#2563eb); color:white; border:none; cursor:pointer; }
+.ai-system { font-size:12px; color:#6b7280; margin-bottom:8px; }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { fetchTips, fetchUserHabits, toggleTipCompletion } from "../utils/healthTipsApi";
+import "./HealthTipPlanner.css";
 import { doc } from "firebase/firestore";
 
 // Lightweight UI primitives (no external UI lib required) — feel free to replace with your design system
@@ -82,27 +83,38 @@ export default function HealthTipPlanner({ userId: propUserId, category = null }
   }
 
   return (
-    <div style={{ maxWidth: 720, width: "100%", padding: 16 }}>
-      <div style={{ padding: 16, borderRadius: 12, background: "#fff", boxShadow: "0 6px 20px rgba(0,0,0,0.06)" }}>
-        <h2 style={{ margin: 0, marginBottom: 12, color: "#065f46" }}>💡 Health Tips for You</h2>
+    <div className="ht-root">
+      <div className="ht-panel">
+        <div className="ht-header">
+          <div>
+            <div className="ht-title">💡 Health Tips for You</div>
+            <div className="ht-note">Small, actionable tips to improve your daily health.</div>
+          </div>
+          <div className="ht-progress">
+            <Progress value={progress} />
+          </div>
+        </div>
 
         {loading && <p>Loading tips…</p>}
         {error && <p style={{ color: "#b91c1c" }}>Error: {error}</p>}
 
         {!loading && !tips.length && <p>No tips available right now.</p>}
 
-        {tips.map((tip) => (
-          <div key={tip.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 8 }}>
-            <div style={{ flex: 1, paddingRight: 12 }}>
-              <div style={{ fontSize: 14 }}>{tip.tip}</div>
-              {tip.category && <div style={{ fontSize: 12, color: "#6b7280" }}>{tip.category}</div>}
+        <div className="ht-list">
+          {tips.map((tip) => (
+            <div key={tip.id} className="ht-item">
+              <div className="text">
+                <div style={{ fontSize: 14 }}>{tip.tip}</div>
+                {tip.category && <div className="ht-category">{tip.category}</div>}
+              </div>
+              <div>
+                <Checkbox checked={completedTips.includes(tip.id)} onChange={() => handleToggle(tip.id)} />
+              </div>
             </div>
-            <Checkbox checked={completedTips.includes(tip.id)} onChange={() => handleToggle(tip.id)} />
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div style={{ marginTop: 12 }}>
-          <Progress value={progress} />
           <p style={{ marginTop: 8, color: "#6b7280", fontSize: 13 }}>
             You’ve completed {completedTips.length}/{tips.length} tips today!
           </p>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
-import { 
+import {
   calculatePriority, 
   generateQueueId, 
   sortQueueByPriority,
@@ -11,6 +11,7 @@ import {
   checkForNotifications,
   PRIORITY_LEVELS
 } from "../utils/priorityCalculator.js";
+import HealthTipPlanner from "./HealthTipPlanner";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -379,6 +380,11 @@ const Home = () => {
         <div className="welcome-container">
           <h2>Welcome to Patient Portal</h2>
           <p>You have successfully logged in to your patient account.</p>
+        </div>
+
+        {/* Health Tips short panel - embedded on the home page */}
+        <div style={{ marginTop: 18, marginBottom: 18 }}>
+          <HealthTipPlanner userId={auth?.currentUser?.uid} />
         </div>
 
         {/* Queue / Appointment Form */}

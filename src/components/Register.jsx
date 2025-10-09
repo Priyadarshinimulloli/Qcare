@@ -45,11 +45,10 @@ const Register = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("Registered user:", userCredential.user);
       setSuccess("Registration successful! Redirecting to patient portal...");
-      
-      // Redirect to home after successful registration
+      // Redirect to patient dashboard after successful registration
       setTimeout(() => {
-        navigate("/home");
-      }, 2000);
+        navigate("/patient", { replace: true });
+      }, 1200);
     } catch (err) {
       console.error("Registration error:", err);
       // Handle different error types
@@ -80,11 +79,10 @@ const Register = () => {
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Google sign-up successful:", result.user);
       setSuccess("Account created successfully with Google! Redirecting to patient portal...");
-      
-      // Redirect to home after successful registration
+      // Redirect to patient dashboard after Google sign-up
       setTimeout(() => {
-        navigate("/home");
-      }, 1500);
+        navigate("/patient", { replace: true });
+      }, 1200);
     } catch (err) {
       console.error("Google sign-up error:", err);
       switch (err.code) {
