@@ -1848,3 +1848,86 @@
     justify-content: center;
   }
 }
+/* Patient Dashboard Styles */
+.patient-dashboard {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.patient-dashboard .header {
+  background-color: #2563eb;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.patient-dashboard .patient-main {
+  margin-top: 20px;
+}
+
+.patient-dashboard .patient-card {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+.patient-dashboard .status {
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+}
+
+.patient-dashboard .status.waiting { background-color: #2563eb; }
+.patient-dashboard .status.called { background-color: #dc2626; }
+.patient-dashboard .status["in-progress"] { background-color: #f59e0b; }
+.patient-dashboard .status.completed { background-color: #10b981; }
+
+.patient-dashboard .volume-control {
+  margin-bottom: 20px;
+}
+
+.patient-dashboard .patient-form {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.patient-dashboard .patient-form h3 {
+  margin-bottom: 15px;
+}
+
+.patient-dashboard .form-group {
+  margin-bottom: 10px;
+}
+
+.patient-dashboard .form-group input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.patient-dashboard .patient-form button {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.patient-dashboard .patient-form button:hover {
+  background-color: #1e40af;
+}
+
+.patient-dashboard .loading {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 50px;
+}

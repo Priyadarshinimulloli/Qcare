@@ -480,6 +480,17 @@ const Home = () => {
                   {realTimeUpdates ? '⏸️ Pause Updates' : '▶️ Resume Updates'}
                 </button>
               </div>
+              {/* Patient Dashboard Button */}
+              {queueId && (
+                 <div className="dashboard-button-container" style={{ marginTop: '15px' }}>
+                    <button
+                    className="dashboard-button"
+                     onClick={() => navigate(`/patient/${queueId}`)}
+                        >
+                         Go to Patient Dashboard
+                          </button>
+                          </div>
+                             )}
             </div>
           )}
         </div>

@@ -177,15 +177,17 @@ const Register = () => {
           </form>
           
           <div className="register-footer">
-            <p>Already have an account?{" "}
-              <Link to="/login" className="login-link">
-                Sign in here
-              </Link>
-            </p>
+           <p>Already have an account?{" "}
+           <Link to="/login" className="login-link">
+            Sign in here
+           </Link>
+           </p>
             <button onClick={handleBackToHome} className="back-button">
               ← Back to Home
-            </button>
-          </div>
+              </button>
+
+            </div>
+
         </div>
       </main>
     </div>
