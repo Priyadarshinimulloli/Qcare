@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase";
 import {
   collection,
@@ -22,6 +23,8 @@ export default function Home() {
   const [contact, setContact] = useState("");
   const [department, setDepartment] = useState("General");
   const [symptoms, setSymptoms] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // subscribe to the 'queues' collection ordered by timestamp
@@ -83,43 +86,80 @@ export default function Home() {
   };
 
   return (
-    <div className="home-main" style={{ paddingTop: 24 }}>
-      <div className="welcome-container">
-        <h1 style={{ margin: 0 }}>Daily Health Tips</h1>
-        <p style={{ marginTop: 8, color: "var(--text-secondary)" }}>Simple daily tips & a habit checklist to keep patients engaged while waiting.</p>
+    <div className="home-main" style={{ paddingTop: 24, margin: 24 }}>
+      <div
+        className="welcome-container"
+        style={{
+          border: "3px solid #1976d2",
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <h1 style={{ margin: 0, textAlign: "center" }}>Daily Health Tips</h1>
+        <p style={{ marginTop: 8, color: "var(--text-secondary)", textAlign: "center" }}>
+          Simple daily tips & a habit checklist to keep patients engaged while waiting.
+        </p>
+        <button
+          className="submit-button"
+          style={{ background: "#1976d2", color: "#fff", marginTop: 12 }}
+          onClick={() => navigate("/dashboard")}
+        >
+          Go to Dashboard
+        </button>
       </div>
 
-      <section className="health-tips-grid" style={{ display: "grid", gridTemplateColumns: "420px 1fr", gap: 24 }}>
+      <section
+        className="health-tips-grid"
+        style={{ display: "grid", gridTemplateColumns: "420px 1fr", gap: 24 }}
+      >
         <aside className="tips-sidebar">
           <div className="queue-summary">
-            <div className="summary-item">Total patients: <strong>{queues.length}</strong></div>
-            <div className="summary-item">Waiting: <strong>{queues.filter((q) => (q.status || "").toLowerCase() === "waiting").length}</strong></div>
+            <div className="summary-item">
+              Total patients: <strong>{queues.length}</strong>
+            </div>
+            <div className="summary-item">
+              Waiting: <strong>{queues.filter((q) => (q.status || "").toLowerCase() === "waiting").length}</strong>
+            </div>
           </div>
           <div style={{ marginTop: 16 }}>
-            <button className="submit-button" onClick={async () => {
-              try {
-                const snap = await getDocs(collection(db, "healthTips"));
-                if (!snap.empty) return alert("Health tips already seeded.");
-                const samples = [
-                  { category: "General", tip: "Drink at least 2 liters of water daily.", day: new Date().toISOString().split("T")[0] },
-                  { category: "Cardiology", tip: "Take a 20-minute brisk walk today.", day: new Date().toISOString().split("T")[0] },
-                  { category: "Wellness", tip: "Try 5 minutes of mindful breathing.", day: new Date().toISOString().split("T")[0] },
-                ];
-                for (const t of samples) await addDoc(collection(db, "healthTips"), t);
-                alert("Seeded sample health tips.");
-              } catch (err) {
-                console.error(err);
-                alert("Seeding failed: " + err?.message);
-              }
-            }}>Seed sample tips</button>
+            <button
+              className="submit-button"
+              onClick={async () => {
+                try {
+                  const snap = await getDocs(collection(db, "healthTips"));
+                  if (!snap.empty) return alert("Health tips already seeded.");
+                  const samples = [
+                    { category: "General", tip: "Drink at least 2 liters of water daily.", day: new Date().toISOString().split("T")[0] },
+                    { category: "Cardiology", tip: "Take a 20-minute brisk walk today.", day: new Date().toISOString().split("T")[0] },
+                    { category: "Wellness", tip: "Try 5 minutes of mindful breathing.", day: new Date().toISOString().split("T")[0] },
+                  ];
+                  for (const t of samples) await addDoc(collection(db, "healthTips"), t);
+                  alert("Seeded sample health tips.");
+                } catch (err) {
+                  console.error(err);
+                  alert("Seeding failed: " + err?.message);
+                }
+              }}
+            >
+              Seed sample tips
+            </button>
           </div>
         </aside>
 
         <main className="tips-main">
           <div className="queue-panel">
             <div className="panel-header">
-              <div>Showing: <strong>{queues.length}</strong> total</div>
-              <div>Waiting: <strong>{queues.filter((q) => (q.status || "").toLowerCase() === "waiting").length}</strong></div>
+              <div>
+                Showing: <strong>{queues.length}</strong> total
+              </div>
+              <div>
+                Waiting: <strong>{queues.filter((q) => (q.status || "").toLowerCase() === "waiting").length}</strong>
+              </div>
             </div>
             <div style={{ marginTop: 12 }}>
               <HealthTipPlanner userId={auth?.currentUser?.uid || null} />
