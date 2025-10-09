@@ -1,0 +1,25 @@
+.admin-dashboard{ padding:20px; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial }
+.admin-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px }
+.header-actions .btn{ padding:8px 12px; border-radius:6px; background:#2563eb; color:#fff; border:none }
+
+.analytics{ display:flex; gap:12px; margin-bottom:16px }
+.stat{ background:#fff; padding:12px 16px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.06) }
+.stat-value{ font-weight:700; font-size:18px }
+.stat-label{ color:#6b7280; font-size:12px }
+
+.admin-grid{ display:flex; gap:16px }
+.left{ flex:2 }
+.right{ flex:1 }
+
+.patient-queue{ background:#fff; padding:12px; border-radius:8px }
+.patient-queue table{ width:100%; border-collapse:collapse }
+.patient-queue th, .patient-queue td{ padding:8px 10px; border-bottom:1px solid #eef2f7; text-align:left }
+
+.doctor-status{ background:#fff; padding:12px; border-radius:8px }
+.doctor-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0 }
+.doc-meta{ font-size:12px; color:#6b7280 }
+
+.btn{ cursor:pointer; background:#111827; color:#fff; border:none; padding:8px 10px; border-radius:6px }
+.btn.small{ padding:6px 8px; font-size:13px }
+
+@media (max-width:900px){ .admin-grid{ flex-direction:column } }

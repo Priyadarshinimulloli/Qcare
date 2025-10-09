@@ -1,16 +1,8 @@
 import './App.css'
+import { useEffect, useState } from 'react'
+import AdminDashboard from './components/AdminPanel/AdminDashboard'
 
-function App() {
-  const handlePatientPortal = () => {
-    // Navigate to patient portal
-    console.log('Navigating to Patient Portal');
-  };
-
-  const handleAdminLogin = () => {
-    // Navigate to admin login
-    console.log('Navigating to Admin Login');
-  };
-
+function Landing({ onAdminClick, onPatientClick }) {
   return (
     <div className="landing-page">
       {/* Header */}
@@ -42,7 +34,7 @@ function App() {
         <div className="navigation-buttons">
           <button 
             className="nav-button patient-button"
-            onClick={handlePatientPortal}
+            onClick={onPatientClick}
             aria-label="Access Patient Portal"
           >
             <div className="button-icon">
@@ -59,7 +51,7 @@ function App() {
 
           <button 
             className="nav-button admin-button"
-            onClick={handleAdminLogin}
+            onClick={onAdminClick}
             aria-label="Access Admin Dashboard"
           >
             <div className="button-icon">
@@ -105,6 +97,45 @@ function App() {
       </footer>
     </div>
   )
+}
+
+function App() {
+  const [path, setPath] = useState(window.location.pathname || '/')
+
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const navigate = (to) => {
+    if (to === path) return
+    window.history.pushState({}, '', to)
+    setPath(to)
+  }
+
+  const handlePatientPortal = () => {
+    // placeholder: navigate to patient portal or external page
+    console.log('Navigating to Patient Portal')
+    // example: navigate('/patient')
+  }
+
+  const handleAdminLogin = () => {
+    navigate('/admin')
+  }
+
+  if (path === '/admin') {
+    return (
+      <div>
+        <nav className="top-nav">
+          <button className="nav-home btn" onClick={() => navigate('/')}>Home</button>
+        </nav>
+        <AdminDashboard />
+      </div>
+    )
+  }
+
+  return <Landing onAdminClick={handleAdminLogin} onPatientClick={handlePatientPortal} />
 }
 
 export default App

@@ -1,0 +1,62 @@
+:root{
+  --bg:#f7fafc;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent-blue:#2563eb;
+  --accent-yellow:#f59e0b;
+  --accent-green:#10b981;
+  --accent-purple:#7c3aed;
+}
+
+.admin-dashboard-page{
+  padding:24px;
+  background:var(--bg);
+  min-height:100vh;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.admin-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.admin-header h2{ margin:0 }
+.admin-header .muted{ color:var(--muted); margin:4px 0 0 }
+
+.header-actions{ display:flex; gap:12px; align-items:center }
+.search-input{ padding:8px 12px; border-radius:8px; border:1px solid #e5e7eb; min-width:360px }
+.btn{ padding:8px 12px; border-radius:8px; border:0; cursor:pointer }
+.btn.primary{ background:var(--accent-blue); color:white }
+
+.stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px }
+.stat-card{ background:var(--card); padding:16px; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04) }
+.stat-title{ color:var(--muted); font-size:13px }
+.stat-value{ font-size:20px; font-weight:600; margin-top:6px }
+.stat-card.blue{ border-left:4px solid var(--accent-blue) }
+.stat-card.yellow{ border-left:4px solid var(--accent-yellow) }
+.stat-card.green{ border-left:4px solid var(--accent-green) }
+.stat-card.purple{ border-left:4px solid var(--accent-purple) }
+
+.queue-section{ background:var(--card); padding:16px; border-radius:8px }
+.section-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px }
+.section-actions{ display:flex; gap:8px; align-items:center }
+.queue-table{ width:100%; border-collapse:collapse }
+.queue-table th, .queue-table td{ text-align:left; padding:10px 12px; border-bottom:1px solid #eef2f7 }
+.queue-table th{ background:#f3f4f6; font-weight:600 }
+.status{ padding:6px 10px; border-radius:999px; font-size:12px; color:#fff }
+.status.waiting{ background:var(--accent-yellow) }
+.status.in-progress{ background:var(--accent-blue) }
+.status.completed{ background:var(--accent-green) }
+
+@media (max-width:900px){
+  .stats-grid{ grid-template-columns:repeat(2,1fr) }
+  .search-input{ min-width:160px }
+}
+
+@media (max-width:600px){
+  .admin-header{ flex-direction:column; align-items:flex-start }
+  .stats-grid{ grid-template-columns:1fr }
+}
