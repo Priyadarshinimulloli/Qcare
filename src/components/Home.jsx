@@ -10,7 +10,7 @@ import {
   calculateEstimatedWaitTime,
   checkForNotifications,
   PRIORITY_LEVELS
-} from "../utils/priorityCalculator";
+} from "../utils/priorityCalculator.js";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -32,8 +32,49 @@ const Home = () => {
   const [priorityInfo, setPriorityInfo] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [customQueueId, setCustomQueueId] = useState(null);
+  const [phoneValidation, setPhoneValidation] = useState({ isValid: true, message: '' });
 
   const avgTimePerPatient = 10; // minutes per patient
+
+  // Phone number formatting function
+  const formatPhoneNumber = (phoneNumber) => {
+    let formatted = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    if (!formatted.startsWith('+')) {
+      // Assume Indian number if no country code and 10 digits
+      if (formatted.length === 10) {
+        formatted = '+91' + formatted;
+      } else if (formatted.length > 10) {
+        formatted = '+' + formatted;
+      }
+    }
+    return formatted;
+  };
+
+  // Validate phone number format
+  const validatePhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    return phoneRegex.test(phoneNumber.replace(/[\s\-\(\)]/g, ''));
+  };
+
+  // Handle contact number change with real-time validation
+  const handleContactChange = (e) => {
+    const value = e.target.value;
+    setContact(value);
+    
+    if (value.length > 0) {
+      const isValid = validatePhoneNumber(value);
+      if (!isValid) {
+        setPhoneValidation({
+          isValid: false,
+          message: 'Please include country code (e.g., +91 9876543210)'
+        });
+      } else {
+        setPhoneValidation({ isValid: true, message: '✓ Valid phone number format' });
+      }
+    } else {
+      setPhoneValidation({ isValid: true, message: '' });
+    }
+  };
 
   useEffect(() => {
     // Check if user is authenticated
@@ -185,6 +226,17 @@ const Home = () => {
     setLoading(true);
 
     try {
+      // Validate and format phone number
+      if (!validatePhoneNumber(contact)) {
+        alert('Please enter a valid phone number with country code (e.g., +91 9876543210)');
+        setLoading(false);
+        return;
+      }
+
+      const formattedContact = formatPhoneNumber(contact);
+      console.log('📞 Original contact:', contact);
+      console.log('📞 Formatted contact:', formattedContact);
+
       // Calculate patient priority based on age and symptoms
       const priority = calculatePriority(parseInt(age), symptoms);
       setPriorityInfo(priority);
@@ -213,7 +265,7 @@ const Home = () => {
       // Add new patient to queue temporarily to calculate position
       const tempQueue = [...currentQueue, {
         priorityScore: priority.score,
-        priority: priority.priority,
+        priority: priority,
         timestamp: { seconds: Date.now() / 1000 }
       }];
 
@@ -222,7 +274,7 @@ const Home = () => {
         item.priorityScore === priority.score && !item.id
       ) + 1;
 
-      const calculatedWaitTime = calculateEstimatedWaitTime(calculatedPosition, priority.priority.name);
+      const calculatedWaitTime = calculateEstimatedWaitTime(calculatedPosition, priority.name);
 
       // Add queue entry to Firestore with priority and custom ID
       const docRef = await addDoc(collection(db, "queues"), {
@@ -231,15 +283,16 @@ const Home = () => {
         patientEmail: auth.currentUser.email,
         name,
         age: parseInt(age),
-        contact,
+        contact: formattedContact, // Use formatted phone number
+        originalContact: contact, // Keep original for reference
         hospital,
         department,
         doctor,
         symptoms,
-        priority: priority.priority,
+        priority: priority,
         priorityScore: priority.score,
-        priorityReasons: priority.reasons,
-        escalated: priority.escalated,
+        priorityDescription: priority.description, // Use description instead of undefined reasons
+        escalated: priority.score >= 80, // Mark as escalated if High or Critical priority
         status: "waiting",
         queuePosition: calculatedPosition,
         estimatedWaitTime: calculatedWaitTime,
@@ -266,10 +319,10 @@ const Home = () => {
       setQueueStatus("waiting");
 
       // Show priority information to user
-      if (priority.escalated) {
+      if (priority.score >= 80) { // Show notification for High or Critical priority
         setNotifications([{
           type: 'priority_assigned',
-          message: `Your queue has been prioritized: ${priority.priority.name}. Reasons: ${priority.reasons.join(', ')}`,
+          message: `Your queue has been prioritized: ${priority.name}. Your priority level has been automatically assigned.`,
           priority: 'info'
         }]);
       }
@@ -277,10 +330,10 @@ const Home = () => {
       console.log(`Queue created successfully:
         - Custom Queue ID: ${customId}
         - Firestore ID: ${newQueueId}
-        - Priority: ${priority.priority.name} (Score: ${priority.score})
+        - Priority: ${priority.name} (Score: ${priority.score})
         - Position: ${calculatedPosition}
         - Estimated wait: ${calculatedWaitTime} minutes
-        - Reasons: ${priority.reasons.join(', ')}`);
+        - Description: ${priority.description}`);
 
       // Enable real-time updates after successful queue creation
       setRealTimeUpdates(true);
@@ -366,11 +419,22 @@ const Home = () => {
               <input
                 id="contact"
                 type="tel"
-                placeholder="Enter your contact number"
+                placeholder="Enter your contact number (e.g., +91 9876543210)"
                 value={contact}
-                onChange={e => setContact(e.target.value)}
+                onChange={handleContactChange}
                 required
+                style={{
+                  borderColor: phoneValidation.isValid ? '#ddd' : '#dc3545'
+                }}
               />
+              <small style={{
+                color: phoneValidation.isValid ? '#28a745' : '#dc3545', 
+                fontSize: '0.8rem', 
+                marginTop: '0.25rem', 
+                display: 'block'
+              }}>
+                {phoneValidation.message || 'Include country code (e.g., +91 for India, +1 for US)'}
+              </small>
             </div>
 
             <div className="form-row">
@@ -471,12 +535,12 @@ const Home = () => {
               {/* Priority Information */}
               {priorityInfo && (
                 <div className="priority-info">
-                  <div className="priority-badge" style={{ backgroundColor: priorityInfo.priority.color }}>
-                    {priorityInfo.priority.name}
+                  <div className="priority-badge" style={{ backgroundColor: priorityInfo.color }}>
+                    {priorityInfo.name}
                   </div>
                   {priorityInfo.escalated && (
                     <div className="priority-reasons">
-                      <strong>Priority Reasons:</strong> {priorityInfo.reasons.join(', ')}
+                      <strong>Priority Level:</strong> {priorityInfo.description}
                     </div>
                   )}
                 </div>

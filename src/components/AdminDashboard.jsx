@@ -14,7 +14,8 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { sortQueueByPriority, PRIORITY_LEVELS, calculateEstimatedWaitTime } from "../utils/priorityCalculator";
+import { sortQueueByPriority, PRIORITY_LEVELS, calculateEstimatedWaitTime } from "../utils/priorityCalculator.js";
+import twilioService from "../services/twilioService";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -44,6 +45,12 @@ const AdminDashboard = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(5); // seconds
   const [notifications, setNotifications] = useState([]);
+  
+  // SMS-related state
+  const [smsLoading, setSmsLoading] = useState(false);
+  const [showSmsPanel, setShowSmsPanel] = useState(false);
+  const [customSmsMessage, setCustomSmsMessage] = useState('');
+  const [smsRecipients, setSmsRecipients] = useState([]);
   
   const unsubscribeRef = useRef(null);
   const refreshIntervalRef = useRef(null);
@@ -277,6 +284,22 @@ const AdminDashboard = () => {
       // Update the patient record in Firestore
       await updateDoc(doc(db, "queues", patientId), updateData);
 
+      // Send SMS notification for status changes
+      if (currentPatient && ['called', 'completed'].includes(newStatus)) {
+        try {
+          await twilioService.sendQueueNotification(currentPatient, newStatus);
+          console.log(`📱 SMS sent to ${currentPatient.name} for status: ${newStatus}`);
+        } catch (smsError) {
+          console.error('SMS notification failed:', smsError);
+          setNotifications(prev => [...prev, {
+            id: Date.now(),
+            type: 'warning',
+            message: `Status updated but SMS failed: ${smsError.message}`,
+            timestamp: new Date().toLocaleTimeString()
+          }]);
+        }
+      }
+
       // If patient status changes affect queue order, recalculate positions
       if (['completed', 'called', 'in-progress', 'no-show'].includes(newStatus)) {
         // Get all waiting patients for reordering
@@ -477,6 +500,26 @@ const AdminDashboard = () => {
       await updateQueueOrder();
 
       const patient = queueList.find(p => p.id === patientId);
+      
+      // Send SMS notification for emergency escalation
+      try {
+        await twilioService.sendQueueNotification(patient, 'emergency_escalation');
+        setNotifications(prev => [...prev, {
+          id: Date.now(),
+          type: 'success',
+          message: `Emergency escalation SMS sent to ${patient?.name}`,
+          timestamp: new Date().toLocaleTimeString()
+        }]);
+      } catch (smsError) {
+        console.error('SMS notification failed:', smsError);
+        setNotifications(prev => [...prev, {
+          id: Date.now(),
+          type: 'warning',
+          message: `Patient escalated but SMS notification failed: ${smsError.message}`,
+          timestamp: new Date().toLocaleTimeString()
+        }]);
+      }
+
       setNotifications(prev => [...prev, {
         id: Date.now(),
         type: 'warning',
@@ -491,6 +534,103 @@ const AdminDashboard = () => {
         message: `Failed to escalate patient: ${error.message}`,
         timestamp: new Date().toLocaleTimeString()
       }]);
+    }
+  };
+
+  // SMS Functions
+  const sendSMSToPatient = async (patient, notificationType = 'called') => {
+    try {
+      setSmsLoading(true);
+      await twilioService.sendQueueNotification(patient, notificationType);
+      
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'success',
+        message: `SMS sent to ${patient.name} (${patient.customQueueId})`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } catch (error) {
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'error',
+        message: `SMS failed: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setSmsLoading(false);
+    }
+  };
+
+  const sendBulkSMS = async () => {
+    if (smsRecipients.length === 0 || !customSmsMessage.trim()) {
+      alert('Please select recipients and enter a message');
+      return;
+    }
+
+    try {
+      setSmsLoading(true);
+      const selectedPatients = queueList.filter(p => smsRecipients.includes(p.id));
+      
+      await twilioService.sendBulkNotifications(selectedPatients, customSmsMessage, 'bulk_admin');
+      
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'success',
+        message: `Bulk SMS sent to ${selectedPatients.length} patients`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+      
+      setShowSmsPanel(false);
+      setCustomSmsMessage('');
+      setSmsRecipients([]);
+    } catch (error) {
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'error',
+        message: `Bulk SMS failed: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setSmsLoading(false);
+    }
+  };
+
+  const sendEmergencyBroadcast = async () => {
+    const message = prompt('Enter emergency message for all waiting patients:');
+    if (!message) return;
+
+    try {
+      setSmsLoading(true);
+      const waitingPatients = queueList.filter(p => p.status === 'waiting');
+      
+      if (waitingPatients.length === 0) {
+        alert('No waiting patients to notify');
+        return;
+      }
+
+      await twilioService.sendBulkNotifications(
+        waitingPatients, 
+        `🚨 EMERGENCY NOTICE: ${message}`,
+        'emergency_broadcast'
+      );
+      
+      await twilioService.sendEmergencyBroadcast(selectedHospital, selectedDepartment, message);
+      
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'warning',
+        message: `Emergency broadcast sent to ${waitingPatients.length} waiting patients`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } catch (error) {
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'error',
+        message: `Emergency broadcast failed: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setSmsLoading(false);
     }
   };
 
@@ -521,7 +661,11 @@ const AdminDashboard = () => {
       );
     }
 
-    console.log(`👥 Admin Dashboard: Showing ${filtered.length} real patients from ${queueList.length} total records`);
+    // Only log when the filter results change significantly (not on every render)
+    if (window.lastFilteredCount !== filtered.length) {
+      console.log(`👥 Admin Dashboard: Showing ${filtered.length} real patients from ${queueList.length} total records`);
+      window.lastFilteredCount = filtered.length;
+    }
     return filtered;
   };
 
@@ -857,6 +1001,105 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* SMS & Emergency Actions Panel */}
+        {selectedHospital && selectedDepartment && (
+          <div className="sms-emergency-panel">
+            <div className="panel-header">
+              <h3>📱 SMS & Emergency Actions</h3>
+            </div>
+            
+            <div className="sms-actions">
+              <button 
+                onClick={() => setShowSmsPanel(!showSmsPanel)}
+                className="action-button sms-panel-toggle"
+                disabled={smsLoading}
+              >
+                📤 Bulk SMS
+              </button>
+              
+              <button 
+                onClick={sendEmergencyBroadcast}
+                className="action-button emergency-broadcast"
+                disabled={smsLoading || stats.waiting === 0}
+              >
+                🚨 Emergency Broadcast
+              </button>
+              
+              {smsLoading && (
+                <div className="sms-loading">
+                  <div className="loading-spinner"></div>
+                  <span>Sending SMS...</span>
+                </div>
+              )}
+            </div>
+
+            {/* SMS Panel */}
+            {showSmsPanel && (
+              <div className="sms-panel">
+                <div className="sms-panel-header">
+                  <h4>📋 Compose Bulk SMS</h4>
+                  <button 
+                    onClick={() => setShowSmsPanel(false)}
+                    className="close-panel-btn"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div className="sms-recipients">
+                  <label>Select Recipients:</label>
+                  <div className="recipient-options">
+                    <button 
+                      onClick={() => setSmsRecipients(queueList.filter(p => p.status === 'waiting').map(p => p.id))}
+                      className="select-recipients-btn"
+                    >
+                      All Waiting ({queueList.filter(p => p.status === 'waiting').length})
+                    </button>
+                    <button 
+                      onClick={() => setSmsRecipients(Array.from(selectedPatients))}
+                      className="select-recipients-btn"
+                      disabled={selectedPatients.size === 0}
+                    >
+                      Selected ({selectedPatients.size})
+                    </button>
+                    <button 
+                      onClick={() => setSmsRecipients([])}
+                      className="select-recipients-btn clear"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <small>Selected: {smsRecipients.length} patients</small>
+                </div>
+                
+                <div className="sms-message">
+                  <label>Message:</label>
+                  <textarea
+                    value={customSmsMessage}
+                    onChange={(e) => setCustomSmsMessage(e.target.value)}
+                    placeholder="Enter your message here... 
+Available variables: {name}, {queueId}, {hospital}, {department}"
+                    rows={4}
+                    maxLength={160}
+                    className="sms-textarea"
+                  />
+                  <small>{customSmsMessage.length}/160 characters</small>
+                </div>
+                
+                <div className="sms-panel-actions">
+                  <button 
+                    onClick={sendBulkSMS}
+                    disabled={smsRecipients.length === 0 || !customSmsMessage.trim() || smsLoading}
+                    className="action-button send-sms"
+                  >
+                    📤 Send SMS to {smsRecipients.length} patients
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Enhanced Queue Table */}
         {selectedHospital && selectedDepartment && (
           <div className="queue-container">
@@ -1011,13 +1254,23 @@ const AdminDashboard = () => {
                         <td className="actions">
                           <div className="action-buttons">
                             {patient.status === 'waiting' && (
-                              <button 
-                                onClick={() => updatePatientStatus(patient.id, "called", patient.customQueueId)}
-                                className="action-btn call"
-                                title="Call Patient"
-                              >
-                                📞
-                              </button>
+                              <>
+                                <button 
+                                  onClick={() => updatePatientStatus(patient.id, "called", patient.customQueueId)}
+                                  className="action-btn call"
+                                  title="Call Patient"
+                                >
+                                  📞
+                                </button>
+                                <button 
+                                  onClick={() => sendSMSToPatient(patient, 'called')}
+                                  className="action-btn sms"
+                                  title="Send SMS"
+                                  disabled={smsLoading}
+                                >
+                                  📱
+                                </button>
+                              </>
                             )}
                             
                             {patient.status === 'called' && (
@@ -1047,6 +1300,18 @@ const AdminDashboard = () => {
                                 title="Emergency Priority"
                               >
                                 🚨
+                              </button>
+                            )}
+                            
+                            {/* Position update SMS for waiting patients */}
+                            {patient.status === 'waiting' && patient.currentPosition && (
+                              <button 
+                                onClick={() => sendSMSToPatient(patient, 'position_update', patient.currentPosition, patient.estimatedWaitTime)}
+                                className="action-btn position-sms"
+                                title="Send Position Update"
+                                disabled={smsLoading}
+                              >
+                                📍
                               </button>
                             )}
                           </div>
