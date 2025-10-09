@@ -9,8 +9,7 @@ function LandingPage() {
   };
 
   const handleAdminLogin = () => {
-    // Navigate to admin login (you can add this route later)
-    console.log('Navigating to Admin Login');
+    navigate('/admin');
   };
 
   return (
