@@ -17,8 +17,9 @@ const Login = () => {
     
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Logged in user:", userCredential.user);
-      navigate("/home"); // redirect after login
+  console.log("Logged in user:", userCredential.user);
+  // Redirect to patient dashboard after login
+  navigate("/patient", { replace: true });
     } catch (err) {
       console.error("Login error:", err);
       // Handle different error types
