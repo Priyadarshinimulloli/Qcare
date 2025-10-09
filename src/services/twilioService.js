@@ -4,12 +4,25 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 class TwilioService {
   constructor() {
-    // Since Twilio SDK needs server-side execution, we'll use Firebase Functions
-    // For now, we'll create a mock service and prepare for backend integration
+    // Initialize Twilio configuration
     this.accountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID;
     this.authToken = import.meta.env.VITE_TWILIO_AUTH_TOKEN;
     this.phoneNumber = import.meta.env.VITE_TWILIO_PHONE_NUMBER;
-    this.apiEndpoint = '/api/sms'; // Backend endpoint for Twilio API calls
+    
+    // Validate configuration on startup
+    this.validateConfig();
+  }
+
+  // Validate Twilio configuration
+  validateConfig() {
+    console.log('🔧 Twilio Configuration Check:');
+    console.log('Account SID:', this.accountSid ? '✅ Set' : '❌ Missing');
+    console.log('Auth Token:', this.authToken ? '✅ Set' : '❌ Missing');
+    console.log('Phone Number:', this.phoneNumber ? '✅ Set' : '❌ Missing');
+    
+    if (!this.accountSid || !this.authToken || !this.phoneNumber) {
+      console.warn('⚠️ Twilio configuration incomplete. SMS functionality may not work.');
+    }
   }
 
   // Validate phone number format
@@ -40,7 +53,7 @@ class TwilioService {
     return formatted;
   }
 
-  // Send SMS notification (mock implementation for frontend)
+  // Send SMS notification (actual Twilio API implementation)
   async sendSMS({ to, message, patientId, queueId, hospital, department, notificationType }) {
     try {
       console.log('📱 Twilio SMS Request:', { to, message: message.substring(0, 50) + '...', notificationType });
@@ -56,14 +69,46 @@ class TwilioService {
       console.log('📞 Using formatted phone number:', formattedPhone);
 
       // Check if required Twilio config is present
-      if (!this.phoneNumber) {
-        console.warn('⚠️ Twilio phone number not configured. Set VITE_TWILIO_PHONE_NUMBER in environment.');
+      if (!this.accountSid || !this.authToken || !this.phoneNumber) {
+        console.error('❌ Twilio configuration missing. Please check environment variables.');
+        throw new Error('Twilio configuration incomplete');
       }
 
-      // Mock SMS sending (replace with actual backend API call)
+      // Prepare SMS data for Twilio API
       const smsData = {
+        To: formattedPhone,
+        From: this.phoneNumber,
+        Body: message
+      };
+
+      console.log('📤 Sending SMS via Twilio API:', { ...smsData, Body: smsData.Body.substring(0, 50) + '...' });
+
+      // Make actual HTTP request to Twilio API
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages.json`;
+      
+      const response = await fetch(twilioUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + btoa(`${this.accountSid}:${this.authToken}`),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(smsData)
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Twilio API error:', responseData);
+        throw new Error(`Twilio API error: ${responseData.message || 'Unknown error'}`);
+      }
+
+      console.log('✅ SMS sent successfully via Twilio:', responseData.sid);
+
+      // Log SMS in Firebase for tracking
+      const logData = {
+        twilioSid: responseData.sid,
         to: formattedPhone,
-        from: this.phoneNumber || '+1234567890', // fallback for testing
+        from: this.phoneNumber,
         body: message,
         patientId,
         queueId,
@@ -71,30 +116,30 @@ class TwilioService {
         department,
         notificationType,
         timestamp: new Date().toISOString(),
-        status: 'pending'
+        status: responseData.status,
+        sentAt: serverTimestamp(),
+        provider: 'twilio',
+        twilioResponse: {
+          sid: responseData.sid,
+          status: responseData.status,
+          direction: responseData.direction,
+          dateCreated: responseData.date_created,
+          dateUpdated: responseData.date_updated,
+          price: responseData.price,
+          priceUnit: responseData.price_unit
+        }
       };
 
-      console.log('📤 Sending SMS data:', smsData);
-
-      // For now, simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Log SMS in Firebase for tracking
-      const smsLog = await addDoc(collection(db, "sms_logs"), {
-        ...smsData,
-        sentAt: serverTimestamp(),
-        status: 'sent',
-        provider: 'twilio'
-      });
-
-      console.log('✅ SMS logged successfully:', smsLog.id);
+      const smsLog = await addDoc(collection(db, "sms_logs"), logData);
+      console.log('✅ SMS logged successfully in Firebase:', smsLog.id);
 
       return {
         success: true,
-        messageId: `mock_${Date.now()}`,
-        status: 'sent',
+        messageId: responseData.sid,
+        status: responseData.status,
         to: formattedPhone,
-        logId: smsLog.id
+        logId: smsLog.id,
+        twilioResponse: responseData
       };
 
     } catch (error) {
@@ -224,14 +269,77 @@ class TwilioService {
     }
   }
 
-  // Get SMS delivery status
+  // Get SMS delivery status from Twilio API
   async getSMSStatus(messageId) {
-    // Mock status check (replace with actual Twilio API call)
-    return {
-      messageId,
-      status: 'delivered',
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      if (!messageId || messageId.startsWith('mock_')) {
+        return { messageId, status: 'unknown', updatedAt: new Date().toISOString() };
+      }
+
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages/${messageId}.json`;
+      
+      const response = await fetch(twilioUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Basic ' + btoa(`${this.accountSid}:${this.authToken}`)
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get SMS status: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📊 SMS status from Twilio:', data);
+
+      return {
+        messageId: data.sid,
+        status: data.status,
+        errorCode: data.error_code,
+        errorMessage: data.error_message,
+        price: data.price,
+        priceUnit: data.price_unit,
+        direction: data.direction,
+        dateCreated: data.date_created,
+        dateUpdated: data.date_updated,
+        dateSent: data.date_sent,
+        to: data.to,
+        from: data.from
+      };
+    } catch (error) {
+      console.error('Error getting SMS status:', error);
+      return {
+        messageId,
+        status: 'error',
+        error: error.message,
+        updatedAt: new Date().toISOString()
+      };
+    }
+  }
+
+  // Test SMS function to verify API connectivity
+  async testSMS(testPhoneNumber) {
+    try {
+      console.log('🧪 Testing Twilio SMS API...');
+      
+      const testMessage = 'Test message from Hospital Queue System - ' + new Date().toLocaleTimeString();
+      
+      const result = await this.sendSMS({
+        to: testPhoneNumber,
+        message: testMessage,
+        patientId: 'test',
+        queueId: 'TEST001',
+        hospital: 'Test Hospital',
+        department: 'Test Department',
+        notificationType: 'test'
+      });
+      
+      console.log('✅ Test SMS result:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Test SMS failed:', error);
+      throw error;
+    }
   }
 
   // Get SMS logs for a patient
@@ -259,5 +367,6 @@ export const {
   sendBulkNotifications,
   sendEmergencyBroadcast,
   getSMSStatus,
-  getPatientSMSHistory
+  getPatientSMSHistory,
+  testSMS
 } = twilioService;

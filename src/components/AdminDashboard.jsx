@@ -561,6 +561,38 @@ const AdminDashboard = () => {
     }
   };
 
+  // Test SMS function to verify Twilio API
+  const testTwilioAPI = async () => {
+    try {
+      setSmsLoading(true);
+      console.log('🧪 Testing Twilio API integration...');
+      
+      // Use the first patient's phone number for testing, or a default test number
+      const testPhone = queueList.length > 0 ? queueList[0].contact : '+918105792715';
+      
+      const result = await twilioService.testSMS(testPhone);
+      
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'success', 
+        message: `✅ Test SMS sent successfully! Message ID: ${result.messageId}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+      
+      console.log('✅ Twilio API test successful:', result);
+    } catch (error) {
+      console.error('❌ Twilio API test failed:', error);
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'error',
+        message: `❌ Test SMS failed: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setSmsLoading(false);
+    }
+  };
+
   const sendBulkSMS = async () => {
     if (smsRecipients.length === 0 || !customSmsMessage.trim()) {
       alert('Please select recipients and enter a message');
@@ -1023,6 +1055,25 @@ const AdminDashboard = () => {
                 disabled={smsLoading || stats.waiting === 0}
               >
                 🚨 Emergency Broadcast
+              </button>
+              
+              <button 
+                onClick={testTwilioAPI}
+                className="action-button test-sms"
+                disabled={smsLoading}
+                style={{
+                  background: '#8b5cf6',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                title="Test Twilio API integration with real SMS"
+              >
+                🧪 Test SMS API
               </button>
               
               {smsLoading && (
