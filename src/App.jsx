@@ -4,7 +4,7 @@ import './App.css';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Register from './components/Register';
-import Home from './pages/Home'; // Updated path
+import Home from './components/Home'; // Updated path to components
 import PatientDashboard from './components/PatientDashboard';
 import HealthTips from './pages/HealthTips';
 import ProtectedRoute from './components/ProtectedRoute';
