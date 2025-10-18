@@ -1,29 +1,49 @@
-# Hospital Queue Management System
+# Qcare 🏥
 
-A modern, responsive hospital management system built with React and Firebase.
+![GitHub stars](https://img.shields.io/github/stars/Priyadarshinimulloli/Qcare?style=social) 
+![GitHub forks](https://img.shields.io/github/forks/Priyadarshinimulloli/Qcare?style=social) 
+![GitHub issues](https://img.shields.io/github/issues/Priyadarshinimulloli/Qcare) 
+![License](https://img.shields.io/github/license/Priyadarshinimulloli/Qcare)
 
-## Features
+**Smart Hospital Queue Management System**  
+Streamline hospital queues with **digital registration**, **priority case handling**, and **real-time SMS notifications** for smoother patient flow.  
 
-- 🏥 **Professional Landing Page**: Clean, medical-themed design
-- 👥 **Patient Portal**: Secure login for patients
-- 🔐 **Firebase Authentication**: Secure user management
-- 📱 **Responsive Design**: Works on desktop and mobile
-- ♿ **Accessibility**: WCAG compliant design
+---
 
-## Tech Stack
+## ✨ Features
 
-- **Frontend**: React 19, Vite
-- **Routing**: React Router DOM
-- **Authentication**: Firebase Auth
-- **Styling**: Custom CSS with CSS Variables
-- **Icons**: Custom SVG icons
+- 📝 **Patient Registration:** Easy web-based registration for patients.  
+- ⏱️ **Queue Management:** Automatically prioritizes critical cases.  
+- 📩 **Real-time Notifications:** Sends SMS alerts to patients and staff.  
+- 📊 **Admin Dashboard:** Monitor queues and patient details efficiently.  
+- 🔗 **Firebase Integration:** For real-time updates and notifications.  
 
-## Setup Instructions
+---
 
-### 1. Clone the repository
+## 💻 Tech Stack
+
+- **Frontend:** HTML, CSS, JavaScript, React.js  
+- **Backend:** Firebase (Realtime Database & Authentication)  
+- **Notifications:** Twilio / SMS API integration  
+- **Hosting:** GitHub Pages / Vercel / Netlify  
+
+---
+
+## 📸 Screenshots
+
+*(Add screenshots or GIFs of the app in action)*  
+
+![Landing Page](screenshots/landing.png)  
+![Dashboard](screenshots/dashboard.png)  
+
+---
+
+## 🚀 Installation
+
+### 1. Clone the repository:  
 ```bash
-git clone <your-repo-url>
-cd hospital-queue
+git clone https://github.com/Priyadarshinimulloli/Qcare.git
+
 ```
 
 ### 2. Install dependencies
@@ -57,49 +77,20 @@ npm install
 npm run dev
 ```
 
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── LandingPage.jsx    # Main landing page
-│   ├── Login.jsx          # Patient login
-│   ├── Register.jsx       # Patient registration
-│   └── Home.jsx           # Patient dashboard
-├── firebase.js            # Firebase configuration
-├── App.jsx               # Main app with routing
-├── App.css              # Component styles
-├── index.css            # Global styles
-└── main.jsx             # App entry point
-```
-
 ## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+## 🔒 Security Notes
 
-## Contributing
+- Never commit your `.env` file containing Firebase or API keys.  
+- Ensure `.env` is included in `.gitignore`.  
+- Configure Firebase database rules to allow only authenticated users to read/write.  
+- Do not expose sensitive credentials in screenshots, code snippets, or public repos.
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## ⭐ Support
 
-## License
+If you find Qcare useful, **give it a star ⭐** and share it with others!
 
-This project is licensed under the MIT License.
-
-## Security Note
-
-Never commit your `.env` file to version control. It contains sensitive Firebase configuration data.
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
