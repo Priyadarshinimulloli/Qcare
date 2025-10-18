@@ -30,11 +30,10 @@ Streamline hospital queues with **digital registration**, **priority case handli
 ---
 
 ## 📸 Screenshots
+<img width="1888" height="929" alt="image" src="https://github.com/user-attachments/assets/e8b3befa-8cee-4a7c-b2ec-7f30460c625b" />
+<img width="581" height="862" alt="image" src="https://github.com/user-attachments/assets/adacc1e1-ca39-499f-ac13-1035e2d773f1" />
 
-*(Add screenshots or GIFs of the app in action)*  
-
-![Landing Page](screenshots/landing.png)  
-![Dashboard](screenshots/dashboard.png)  
+ 
 
 ---
 
