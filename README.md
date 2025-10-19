@@ -25,7 +25,7 @@ Streamline hospital queues with **digital registration**, **priority case handli
 - **Frontend:** HTML, CSS, JavaScript, React.js  
 - **Backend:** Firebase (Realtime Database & Authentication)  
 - **Notifications:** Twilio / SMS API integration  
-- **Hosting:** GitHub Pages / Vercel / Netlify  
+
 
 ---
 
