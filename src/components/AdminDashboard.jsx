@@ -718,6 +718,53 @@ const AdminDashboard = () => {
     await updatePatientStatus(queueId, newStatus, patient?.customQueueId);
   };
 
+  const triggerTwilioVoiceCall = async (patient) => {
+    try {
+      setLoading(true);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      
+      const payload = {
+        name: patient.name,
+        id: patient.customQueueId || patient.id.slice(-6),
+        doctor: patient.doctorName || 'Dr. Rao',
+        hospital: patient.hospital || 'MediCare Central',
+        department: patient.department || 'Cardiology',
+        contact: patient.contact
+      };
+
+      const response = await fetch(`${backendUrl}/api/call-patient`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setNotifications(prev => [...prev, {
+          id: Date.now(),
+          type: 'success',
+          message: `Voice call initiated for ${patient.name} (${payload.id})`,
+          timestamp: new Date().toLocaleTimeString()
+        }]);
+      } else {
+        throw new Error(data.error || 'Failed to initiate call');
+      }
+    } catch (error) {
+      console.error('Twilio Voice Call error:', error);
+      setNotifications(prev => [...prev, {
+        id: Date.now(),
+        type: 'error',
+        message: `Twilio Call Failed: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const callNextPatient = async () => {
     const waitingPatients = queueList.filter(q => q.status === "waiting");
     if (waitingPatients.length === 0) {
@@ -727,6 +774,9 @@ const AdminDashboard = () => {
 
     const nextPatient = waitingPatients[0];
     await updateQueueStatus(nextPatient.id, "called");
+    
+    // Trigger Twilio voice call for the next patient
+    await triggerTwilioVoiceCall(nextPatient);
   };
 
   const getStatusColor = (status) => {
@@ -1306,13 +1356,33 @@ Available variables: {name}, {queueId}, {hospital}, {department}"
                           <div className="action-buttons">
                             {patient.status === 'waiting' && (
                               <>
-                                <button 
-                                  onClick={() => updatePatientStatus(patient.id, "called", patient.customQueueId)}
-                                  className="action-btn call"
-                                  title="Call Patient"
-                                >
-                                  📞
-                                </button>
+                                  <button 
+                                    onClick={() => triggerTwilioVoiceCall(patient)}
+                                    className="action-btn voice-call"
+                                    title="Trigger Voice Call"
+                                    style={{
+                                      background: '#f59e0b',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '0.4rem',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      fontSize: '1rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'background-color 0.2s'
+                                    }}
+                                  >
+                                    📞
+                                  </button>
+                                  <button 
+                                    onClick={() => updatePatientStatus(patient.id, "called", patient.customQueueId)}
+                                    className="action-btn call"
+                                    title="Mark as Called"
+                                  >
+                                    🔔
+                                  </button>
                                 <button 
                                   onClick={() => sendSMSToPatient(patient, 'called')}
                                   className="action-btn sms"
