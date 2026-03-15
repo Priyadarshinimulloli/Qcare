@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  getRedirectResult,
+  signInWithPopup,
+  signInWithRedirect,
+} from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -14,14 +19,95 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const getEmailRegistrationErrorMessage = (code) => {
+    switch (code) {
+      case "auth/email-already-in-use":
+        return "An account with this email already exists. Please use a different email or try logging in.";
+      case "auth/invalid-email":
+        return "Please enter a valid email address.";
+      case "auth/weak-password":
+        return "Password is too weak. Please choose a stronger password.";
+      case "auth/operation-not-allowed":
+        return "Email/Password sign-in is disabled in Firebase. Enable it in Authentication > Sign-in method.";
+      case "auth/network-request-failed":
+        return "Network error while creating account. Check your internet and try again.";
+      case "auth/too-many-requests":
+        return "Too many attempts from this device. Please wait and try again.";
+      case "auth/invalid-api-key":
+        return "Firebase API key is invalid. Check your VITE_FIREBASE_API_KEY in .env.";
+      default:
+        return "Registration failed. Please try again.";
+    }
+  };
+
+  const getGoogleAuthErrorMessage = (code) => {
+    switch (code) {
+      case "auth/account-exists-with-different-credential":
+        return "An account already exists with this email. Please sign in using your existing method.";
+      case "auth/popup-closed-by-user":
+        return "Google sign-up was cancelled. Please try again.";
+      case "auth/popup-blocked":
+        return "Browser blocked the Google popup. Allow popups for this site and try again.";
+      case "auth/operation-not-allowed":
+        return "Google sign-in is not enabled in Firebase Authentication. Enable Google provider in Firebase Console.";
+      case "auth/unauthorized-domain":
+        return "This domain is not authorized for Google sign-in. Add it in Firebase Authentication authorized domains.";
+      case "auth/network-request-failed":
+        return "Network error during Google sign-up. Check your internet and try again.";
+      default:
+        return "Google sign-up failed. Please try again.";
+    }
+  };
+
+  const completeGoogleRedirectIfNeeded = async () => {
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult?.user) {
+      setSuccess("Account created successfully with Google! Redirecting to patient portal...");
+      setTimeout(() => {
+        navigate("/patient", { replace: true });
+      }, 1200);
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const finalizeGoogleRedirect = async () => {
+      try {
+        setLoading(true);
+        const completed = await completeGoogleRedirectIfNeeded();
+        if (!completed || !mounted) return;
+      } catch (err) {
+        if (mounted) {
+          console.error("Google redirect completion error:", err);
+          setError(getGoogleAuthErrorMessage(err.code));
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    finalizeGoogleRedirect();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
 
+    const normalizedEmail = email.trim();
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
+
     // Validate required fields
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+    if (!normalizedFirstName || !normalizedLastName || !normalizedEmail || !password || !confirmPassword) {
       setError("Please fill in all fields");
       setLoading(false);
       return;
@@ -42,30 +128,17 @@ const Register = () => {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
       console.log("Registered user:", userCredential.user);
       setSuccess("Registration successful! Redirecting to patient portal...");
-      
-      // Redirect to home after successful registration
+      // Redirect to patient dashboard after successful registration
       setTimeout(() => {
-        navigate("/home");
-      }, 2000);
+        navigate("/patient", { replace: true });
+      }, 1200);
     } catch (err) {
       console.error("Registration error:", err);
-      // Handle different error types
-      switch (err.code) {
-        case 'auth/email-already-in-use':
-          setError("An account with this email already exists. Please use a different email or try logging in.");
-          break;
-        case 'auth/invalid-email':
-          setError("Please enter a valid email address.");
-          break;
-        case 'auth/weak-password':
-          setError("Password is too weak. Please choose a stronger password.");
-          break;
-        default:
-          setError("Registration failed. Please try again.");
-      }
+      const details = err?.code ? ` (${err.code})` : "";
+      setError(`${getEmailRegistrationErrorMessage(err?.code)}${details}`);
     } finally {
       setLoading(false);
     }
@@ -77,29 +150,31 @@ const Register = () => {
     setLoading(true);
     
     try {
+      if (await completeGoogleRedirectIfNeeded()) {
+        return;
+      }
+
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Google sign-up successful:", result.user);
       setSuccess("Account created successfully with Google! Redirecting to patient portal...");
-      
-      // Redirect to home after successful registration
+      // Redirect to patient dashboard after Google sign-up
       setTimeout(() => {
-        navigate("/home");
-      }, 1500);
+        navigate("/patient", { replace: true });
+      }, 1200);
     } catch (err) {
       console.error("Google sign-up error:", err);
-      switch (err.code) {
-        case 'auth/account-exists-with-different-credential':
-          setError("An account already exists with this email. Please try signing in instead.");
-          break;
-        case 'auth/popup-closed-by-user':
-          setError("Sign-up was cancelled. Please try again.");
-          break;
-        case 'auth/popup-blocked':
-          setError("Pop-up was blocked by your browser. Please allow pop-ups and try again.");
-          break;
-        default:
-          setError("Google sign-up failed. Please try again.");
+      if (err.code === "auth/popup-blocked" || err.code === "auth/cancelled-popup-request") {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectErr) {
+          console.error("Google redirect sign-up error:", redirectErr);
+          setError(getGoogleAuthErrorMessage(redirectErr.code));
+          return;
+        }
       }
+
+      setError(getGoogleAuthErrorMessage(err.code));
     } finally {
       setLoading(false);
     }

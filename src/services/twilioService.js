@@ -8,7 +8,8 @@ class TwilioService {
     this.accountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID;
     this.authToken = import.meta.env.VITE_TWILIO_AUTH_TOKEN;
     this.phoneNumber = import.meta.env.VITE_TWILIO_PHONE_NUMBER;
-    
+    this.messagingServiceSid = import.meta.env.VITE_TWILIO_MESSAGING_SERVICE_SID;
+
     // Validate configuration on startup
     this.validateConfig();
   }
@@ -18,10 +19,11 @@ class TwilioService {
     console.log('🔧 Twilio Configuration Check:');
     console.log('Account SID:', this.accountSid ? '✅ Set' : '❌ Missing');
     console.log('Auth Token:', this.authToken ? '✅ Set' : '❌ Missing');
-    console.log('Phone Number:', this.phoneNumber ? '✅ Set' : '❌ Missing');
-    
-    if (!this.accountSid || !this.authToken || !this.phoneNumber) {
-      console.warn('⚠️ Twilio configuration incomplete. SMS functionality may not work.');
+    console.log('Phone Number:', this.phoneNumber ? '✅ Set' : '⚠️ Optional (use Messaging Service SID instead)');
+    console.log('Messaging Service SID:', this.messagingServiceSid ? '✅ Set' : '⚠️ Not set');
+
+    if (!this.accountSid || !this.authToken || (!this.phoneNumber && !this.messagingServiceSid)) {
+      console.warn('⚠️ Twilio configuration incomplete. Set VITE_TWILIO_PHONE_NUMBER or VITE_TWILIO_MESSAGING_SERVICE_SID.');
     }
   }
 
@@ -69,16 +71,18 @@ class TwilioService {
       console.log('📞 Using formatted phone number:', formattedPhone);
 
       // Check if required Twilio config is present
-      if (!this.accountSid || !this.authToken || !this.phoneNumber) {
+      if (!this.accountSid || !this.authToken || (!this.phoneNumber && !this.messagingServiceSid)) {
         console.error('❌ Twilio configuration missing. Please check environment variables.');
-        throw new Error('Twilio configuration incomplete');
+        throw new Error('Twilio configuration incomplete. Set VITE_TWILIO_PHONE_NUMBER or VITE_TWILIO_MESSAGING_SERVICE_SID.');
       }
 
-      // Prepare SMS data for Twilio API
+      // Prefer Messaging Service SID when provided because it handles sender/country routing.
       const smsData = {
         To: formattedPhone,
-        From: this.phoneNumber,
-        Body: message
+        Body: message,
+        ...(this.messagingServiceSid
+          ? { MessagingServiceSid: this.messagingServiceSid }
+          : { From: this.phoneNumber })
       };
 
       console.log('📤 Sending SMS via Twilio API:', { ...smsData, Body: smsData.Body.substring(0, 50) + '...' });
@@ -99,7 +103,16 @@ class TwilioService {
 
       if (!response.ok) {
         console.error('❌ Twilio API error:', responseData);
-        throw new Error(`Twilio API error: ${responseData.message || 'Unknown error'}`);
+
+        const apiMessage = responseData?.message || 'Unknown error';
+        const lowerMessage = String(apiMessage).toLowerCase();
+        if (lowerMessage.includes('not a twilio phone number') || lowerMessage.includes('country mismatch')) {
+          throw new Error(
+            'Twilio sender mismatch: configure a valid sender for the destination country, or set VITE_TWILIO_MESSAGING_SERVICE_SID and remove VITE_TWILIO_PHONE_NUMBER.'
+          );
+        }
+
+        throw new Error(`Twilio API error: ${apiMessage}`);
       }
 
       console.log('✅ SMS sent successfully via Twilio:', responseData.sid);
@@ -108,7 +121,8 @@ class TwilioService {
       const logData = {
         twilioSid: responseData.sid,
         to: formattedPhone,
-        from: this.phoneNumber,
+        from: this.phoneNumber || null,
+        messagingServiceSid: this.messagingServiceSid || null,
         body: message,
         patientId,
         queueId,

@@ -10,7 +10,7 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
   LineChart,
   Line,
@@ -26,7 +26,8 @@ import {
   Cell,
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  ComposedChart
 } from 'recharts';
 import { format, startOfDay, endOfDay, subDays, isToday, parseISO } from 'date-fns';
 
@@ -54,32 +55,43 @@ const Analytics = () => {
     peakHours: [],
     efficiency: 0
   });
+  const [error, setError] = useState(null);
+  const realTimeUnsubRef = React.useRef(null);
 
   const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
   useEffect(() => {
-    if (!auth.currentUser) {
-      navigate('/login');
-      return;
-    }
-    loadAnalyticsData();
-    setupRealTimeListeners();
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      // Only set up Firestore listeners after auth is confirmed
+      if (realTimeUnsubRef.current) realTimeUnsubRef.current();
+      realTimeUnsubRef.current = setupRealTimeListeners();
+      loadAnalyticsData();
+    });
+    return () => {
+      unsubAuth();
+      if (realTimeUnsubRef.current) realTimeUnsubRef.current();
+    };
   }, [timeRange, navigate]);
 
   const setupRealTimeListeners = () => {
-    // Real-time listener for queue updates
     const queueQuery = query(collection(db, 'queues'));
-    
-    const unsubscribe = onSnapshot(queueQuery, (snapshot) => {
-      const queues = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      updateRealTimeStats(queues);
-    });
 
-    return () => unsubscribe();
+    const unsubscribe = onSnapshot(
+      queueQuery,
+      (snapshot) => {
+        const queues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateRealTimeStats(queues);
+      },
+      (err) => {
+        console.error('Real-time listener error:', err);
+      }
+    );
+
+    return unsubscribe;
   };
 
   const updateRealTimeStats = (queues) => {
@@ -144,16 +156,15 @@ const Analytics = () => {
 
   const loadAnalyticsData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const days = timeRange === '7days' ? 7 : timeRange === '30days' ? 30 : 90;
       const startDate = subDays(new Date(), days);
-      
-      // Get all queues in time range
-      const queueQuery = query(
-        collection(db, 'queues'),
-        orderBy('timestamp', 'desc')
-      );
-      
+
+      // Fetch without orderBy to avoid requiring a composite Firestore index;
+      // sort client-side instead.
+      const queueQuery = query(collection(db, 'queues'));
+
       const snapshot = await getDocs(queueQuery);
       const allQueues = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -196,8 +207,9 @@ const Analytics = () => {
       generateWaitTimeData(allQueues);
       generateHourlyData(allQueues);
 
-    } catch (error) {
-      console.error('Error loading analytics:', error);
+    } catch (err) {
+      console.error('Error loading analytics:', err);
+      setError(err?.message || 'Failed to load analytics data.');
     } finally {
       setLoading(false);
     }
@@ -346,6 +358,21 @@ const Analytics = () => {
       <div className="analytics-loading">
         <div className="loading-spinner-large"></div>
         <p>Loading Analytics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="analytics-loading">
+        <p style={{ color: '#ef4444', fontWeight: 600 }}>Failed to load analytics</p>
+        <p style={{ color: '#6b7280', marginTop: 8 }}>{error}</p>
+        <button
+          onClick={() => loadAnalyticsData()}
+          style={{ marginTop: 16, padding: '8px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -503,16 +530,16 @@ const Analytics = () => {
           <div className="chart-card large">
             <h3>Hourly Patient Patterns</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={hourlyData}>
+              <ComposedChart data={hourlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="hour" />
                 <YAxis yAxisId="left" />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="patients" fill="#2563eb" />
-                <Line yAxisId="right" type="monotone" dataKey="avgWait" stroke="#ef4444" strokeWidth={2} />
-              </LineChart>
+                <Bar yAxisId="left" dataKey="patients" fill="#2563eb" name="Patients" />
+                <Line yAxisId="right" type="monotone" dataKey="avgWait" stroke="#ef4444" strokeWidth={2} name="Avg Wait (min)" />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>

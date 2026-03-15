@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Publicly readable tips; writes require auth.
+    match /healthTips/{tipId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    // User habits are private to the owner.
+    match /userHabits/{docId} {
+      allow read, create, update, delete: if isSignedIn() && docId.matches('^' + request.auth.uid + '_.*$');
+    }
+
+    // Queue and dashboard collections used by authenticated users.
+    match /queues/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /appointments/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /vitals/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /prescriptions/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /admin_actions/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /sms_logs/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    match /emergency_broadcasts/{docId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    // Admins collection: only the admin doc owner can read their own record.
+    // Write access requires Firebase Admin SDK (server-side only).
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

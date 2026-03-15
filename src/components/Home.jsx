@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
-import { 
+import {
   calculatePriority, 
   generateQueueId, 
   sortQueueByPriority,
@@ -11,6 +11,7 @@ import {
   checkForNotifications,
   PRIORITY_LEVELS
 } from "../utils/priorityCalculator.js";
+import HealthTipPlanner from "./HealthTipPlanner";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -338,6 +339,21 @@ const Home = () => {
       // Enable real-time updates after successful queue creation
       setRealTimeUpdates(true);
 
+      // Show success message
+      alert(`Queue booked successfully! 
+      
+Queue ID: ${customId}
+Priority: ${priority.name}
+Position: ${calculatedPosition}
+Estimated wait: ${calculatedWaitTime} minutes
+
+Redirecting to your dashboard...`);
+
+      // Redirect to patient dashboard after successful queue creation
+      setTimeout(() => {
+        navigate("/patient");
+      }, 1500); // Small delay to show success message
+
     } catch (err) {
       console.error("Error creating queue:", err);
       alert("Failed to create queue. Please try again.");
@@ -376,141 +392,168 @@ const Home = () => {
       </header>
 
       <main className="home-main">
-        <div className="welcome-container">
-          <h2>Welcome to Patient Portal</h2>
-          <p>You have successfully logged in to your patient account.</p>
-        </div>
-
-        {/* Queue / Appointment Form */}
-        <div className="queue-form-container">
-          <div className="queue-form-header">
-            <h2>Book Your Appointment / Queue</h2>
-            <p>Fill in the details below to join the hospital queue</p>
+        <div className="home-container">
+          {/* Welcome Card */}
+          <div className="welcome-card">
+            <div className="welcome-content">
+              <div className="welcome-icon">🏥</div>
+              <h2>Welcome to Patient Portal</h2>
+              <p>Book your appointment and join the hospital queue easily</p>
+            </div>
           </div>
-          
-          <form className="queue-form" onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">Full Name</label>
-                <input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="age">Age</label>
-                <input
-                  id="age"
-                  type="number"
-                  placeholder="Enter your age"
-                  value={age}
-                  onChange={e => setAge(e.target.value)}
-                  required
-                />
+
+          {/* Health Tips Card */}
+          <div className="health-tips-card">
+            <HealthTipPlanner userId={auth?.currentUser?.uid} />
+          </div>
+
+          {/* Queue Booking Card */}
+          <div className="queue-booking-card">
+            <div className="card-header">
+              <div className="header-icon">📋</div>
+              <div className="header-content">
+                <h2>Book Your Appointment</h2>
+                <p>Fill in the details below to join the hospital queue</p>
               </div>
             </div>
+            
+            <form className="queue-form" onSubmit={handleSubmit}>
+              <div className="form-section">
+                <h3>Personal Information</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="name">Full Name</label>
+                    <input
+                      id="name"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="age">Age</label>
+                    <input
+                      id="age"
+                      type="number"
+                      placeholder="Enter your age"
+                      value={age}
+                      onChange={e => setAge(e.target.value)}
+                      required
+                      min="1"
+                      max="120"
+                    />
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="contact">Contact Number</label>
-              <input
-                id="contact"
-                type="tel"
-                placeholder="Enter your contact number (e.g., +91 9876543210)"
-                value={contact}
-                onChange={handleContactChange}
-                required
-                style={{
-                  borderColor: phoneValidation.isValid ? '#ddd' : '#dc3545'
-                }}
-              />
-              <small style={{
-                color: phoneValidation.isValid ? '#28a745' : '#dc3545', 
-                fontSize: '0.8rem', 
-                marginTop: '0.25rem', 
-                display: 'block'
-              }}>
-                {phoneValidation.message || 'Include country code (e.g., +91 for India, +1 for US)'}
-              </small>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="hospital">Select Hospital</label>
-                <select
-                  id="hospital"
-                  value={hospital}
-                  onChange={e => setHospital(e.target.value)}
-                  required
-                >
-                  <option value="">Choose a hospital</option>
-                  <option value="City Care Hospital">City Care Hospital</option>
-                  <option value="LifeLine Hospital">LifeLine Hospital</option>
-                  <option value="MediCare Central">MediCare Central</option>
-                  <option value="General Hospital">General Hospital</option>
-                </select>
+                <div className="form-group">
+                  <label htmlFor="contact">Contact Number</label>
+                  <input
+                    id="contact"
+                    type="tel"
+                    placeholder="Enter your contact number (e.g., +91 9876543210)"
+                    value={contact}
+                    onChange={handleContactChange}
+                    required
+                    style={{
+                      borderColor: phoneValidation.isValid ? '#ddd' : '#dc3545'
+                    }}
+                  />
+                  <small style={{
+                    color: phoneValidation.isValid ? '#28a745' : '#dc3545', 
+                    fontSize: '0.8rem', 
+                    marginTop: '0.25rem', 
+                    display: 'block'
+                  }}>
+                    {phoneValidation.message || 'Include country code (e.g., +91 for India, +1 for US)'}
+                  </small>
+                </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="department">Select Department</label>
-                <select
-                  id="department"
-                  value={department}
-                  onChange={e => setDepartment(e.target.value)}
-                  required
-                >
-                  <option value="">Choose a department</option>
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="General Medicine">General Medicine</option>
-                </select>
+
+              <div className="form-section">
+                <h3>Appointment Details</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="hospital">Select Hospital</label>
+                    <select
+                      id="hospital"
+                      value={hospital}
+                      onChange={e => setHospital(e.target.value)}
+                      required
+                    >
+                      <option value="">Choose a hospital</option>
+                      <option value="City Care Hospital">City Care Hospital</option>
+                      <option value="LifeLine Hospital">LifeLine Hospital</option>
+                      <option value="MediCare Central">MediCare Central</option>
+                      <option value="General Hospital">General Hospital</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="department">Select Department</label>
+                    <select
+                      id="department"
+                      value={department}
+                      onChange={e => setDepartment(e.target.value)}
+                      required
+                    >
+                      <option value="">Choose a department</option>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Neurology">Neurology</option>
+                      <option value="Orthopedics">Orthopedics</option>
+                      <option value="Pediatrics">Pediatrics</option>
+                      <option value="Dermatology">Dermatology</option>
+                      <option value="General Medicine">General Medicine</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="doctor">Preferred Doctor (Optional)</label>
+                  <input
+                    id="doctor"
+                    type="text"
+                    placeholder="Enter doctor's name if you have a preference"
+                    value={doctor}
+                    onChange={e => setDoctor(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="doctor">Preferred Doctor (Optional)</label>
-              <input
-                id="doctor"
-                type="text"
-                placeholder="Enter doctor's name if you have a preference"
-                value={doctor}
-                onChange={e => setDoctor(e.target.value)}
-              />
-            </div>
+              <div className="form-section">
+                <h3>Additional Information</h3>
+                <div className="form-group">
+                  <label htmlFor="symptoms">Symptoms / Notes (Optional)</label>
+                  <textarea
+                    id="symptoms"
+                    placeholder="Describe your symptoms or any additional notes"
+                    value={symptoms}
+                    onChange={e => setSymptoms(e.target.value)}
+                    rows="3"
+                  />
+                </div>
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="symptoms">Symptoms / Notes (Optional)</label>
-              <textarea
-                id="symptoms"
-                placeholder="Describe your symptoms or any additional notes"
-                value={symptoms}
-                onChange={e => setSymptoms(e.target.value)}
-                rows="3"
-              />
-            </div>
-
-            <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? (
-                <>
-                  <span className="loading-spinner"></span>
-                  Booking Queue...
-                </>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 1L13 4H7L10 1Z" fill="currentColor"/>
-                    <rect x="2" y="4" width="16" height="14" rx="1" fill="currentColor"/>
-                  </svg>
-                  Book Queue
-                </>
-              )}
-            </button>
-          </form>
+              <div className="form-actions">
+                <button type="submit" className="submit-button" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="loading-spinner"></span>
+                      Booking Queue...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 1L13 4H7L10 1Z" fill="currentColor"/>
+                        <rect x="2" y="4" width="16" height="14" rx="1" fill="currentColor"/>
+                      </svg>
+                      Book Queue
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div> {/* Close queue-booking-card */}
 
           {queueId && (
             <div className="queue-details">
@@ -613,7 +656,7 @@ const Home = () => {
               </div>
             </div>
           )}
-        </div>
+        </div> {/* Close home-container */}
       </main>
     </div>
   );

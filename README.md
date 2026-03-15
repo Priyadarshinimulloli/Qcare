@@ -1,105 +1,194 @@
 # Hospital Queue Management System
 
-A modern, responsive hospital management system built with React and Firebase.
+Real-time hospital queue management web app built with React, Vite, Firebase, and Twilio.
 
-## Features
+This project helps clinics and hospitals manage patient queues, prioritize cases, notify patients by SMS, and provide health guidance through a tips planner and AI-assisted chat.
 
-- 🏥 **Professional Landing Page**: Clean, medical-themed design
-- 👥 **Patient Portal**: Secure login for patients
-- 🔐 **Firebase Authentication**: Secure user management
-- 📱 **Responsive Design**: Works on desktop and mobile
-- ♿ **Accessibility**: WCAG compliant design
+## Overview
+
+The application includes:
+
+- Patient registration and login (email/password and Google Sign-In)
+- Protected routes for patients and admins
+- Real-time queue monitoring and status updates with Firestore listeners
+- Priority-based queue sorting (age, urgency, wait-time factors)
+- Patient dashboard with queue status and estimated wait information
+- Admin dashboard with queue operations and bulk actions
+- SMS notifications through Twilio
+- Health tips planner with daily progress tracking
+- Optional AI health tip chat endpoint integration
+
+## Architecture
+
+- High-level architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Editable diagram: [architecture.drawio](architecture.drawio)
 
 ## Tech Stack
 
-- **Frontend**: React 19, Vite
-- **Routing**: React Router DOM
-- **Authentication**: Firebase Auth
-- **Styling**: Custom CSS with CSS Variables
-- **Icons**: Custom SVG icons
+- Frontend: React 19, Vite, React Router
+- Data/Auth: Firebase Authentication + Cloud Firestore
+- Charts/Analytics: Recharts, Chart.js
+- Notifications: Twilio REST API
+- Optional AI integration: external endpoint via `VITE_AI_ENDPOINT`
 
-## Setup Instructions
+## Project Structure
 
-### 1. Clone the repository
-```bash
-git clone <your-repo-url>
-cd hospital-queue
+```text
+.
+|- src/
+|  |- components/        # UI and feature components
+|  |- pages/             # Route pages
+|  |- services/          # External service integrations (Twilio)
+|  |- utils/             # Queue priority and health-tip helpers
+|  |- functions/         # Cloud Functions sample code
+|  |- firebase.js        # Firebase app/auth/firestore initialization
+|  |- App.jsx            # Route definitions
+|  `- main.jsx           # App bootstrap
+|- firestore.rules       # Firestore security rules
+|- firebase.json         # Firebase project config
+|- FIREBASE_INDEXING.md  # Indexing strategy and notes
+|- TWILIO_SMS_GUIDE.md   # SMS integration and troubleshooting
+`- GOOGLE_SIGNIN_SETUP.md
 ```
 
-### 2. Install dependencies
+## Prerequisites
+
+- Node.js 18+
+- npm 9+
+- A Firebase project
+- A Twilio account (only for SMS features)
+
+## Getting Started
+
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 3. Environment Configuration
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
+### 2. Configure environment variables
 
-2. Update `.env` with your Firebase configuration:
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key_here
-   VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   ```
+Copy the example file and update values:
 
-### 4. Firebase Setup
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable Authentication with Email/Password
-3. Copy your Firebase config to the `.env` file
+Windows PowerShell:
 
-### 5. Run the development server
+```powershell
+Copy-Item .env.example .env
+```
+
+macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+Required variables (frontend):
+
+```env
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+Optional variables:
+
+```env
+# Twilio (needed for SMS notifications)
+VITE_TWILIO_ACCOUNT_SID=
+VITE_TWILIO_AUTH_TOKEN=
+VITE_TWILIO_PHONE_NUMBER=
+VITE_TWILIO_MESSAGING_SERVICE_SID=
+
+# Optional AI health chat endpoint (POST { prompt, userId } -> { reply })
+VITE_AI_ENDPOINT=
+```
+
+### 3. Run the app
+
 ```bash
 npm run dev
 ```
 
-## Project Structure
+Vite default URL:
 
-```
-src/
-├── components/
-│   ├── LandingPage.jsx    # Main landing page
-│   ├── Login.jsx          # Patient login
-│   ├── Register.jsx       # Patient registration
-│   └── Home.jsx           # Patient dashboard
-├── firebase.js            # Firebase configuration
-├── App.jsx               # Main app with routing
-├── App.css              # Component styles
-├── index.css            # Global styles
-└── main.jsx             # App entry point
-```
+- http://localhost:5173
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+- `npm run dev` - Start the development server
+- `npm run build` - Build production bundle
+- `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint
+
+## Firebase Setup Checklist
+
+1. Create/select a Firebase project.
+2. Enable Authentication providers:
+- Email/Password
+- Google (optional, if using Google Sign-In)
+3. Enable Cloud Firestore.
+4. Deploy/update Firestore rules from [firestore.rules](firestore.rules).
+
+For provider details, see:
+
+- [GOOGLE_SIGNIN_SETUP.md](GOOGLE_SIGNIN_SETUP.md)
+
+## Twilio SMS Setup
+
+SMS is used by admin workflows for queue updates and alerts.
+
+Notes:
+
+- Phone numbers should be in E.164 format (example: `+919876543210`)
+- You can configure either `VITE_TWILIO_PHONE_NUMBER` or `VITE_TWILIO_MESSAGING_SERVICE_SID`
+
+Detailed guide:
+
+- [TWILIO_SMS_GUIDE.md](TWILIO_SMS_GUIDE.md)
+
+## Firestore Indexing Notes
+
+This project intentionally uses client-side sorting in some views to avoid mandatory composite indexes during initial setup.
+
+For production-scale optimization and index recommendations:
+
+- [FIREBASE_INDEXING.md](FIREBASE_INDEXING.md)
+
+## Key Routes
+
+- `/` - Landing page
+- `/login` - Authentication
+- `/register` - User registration
+- `/home` - Patient intake/home
+- `/patient` - Patient dashboard
+- `/health-tips` - Health tips and planner
+- `/admin` - Admin queue management
+- `/analytics` - Queue analytics
+
+## Screenshots
+
+![App screenshot 1](https://github.com/user-attachments/assets/e8b3befa-8cee-4a7c-b2ec-7f30460c625b)
+![App screenshot 2](https://github.com/user-attachments/assets/adacc1e1-ca39-499f-ac13-1035e2d773f1)
+
+## Security Notes
+
+- Never commit `.env` files with secrets.
+- Keep Firebase API and service credentials out of public screenshots.
+- Use strict Firestore rules for authenticated access control.
+- Prefer moving sensitive API calls (for example Twilio/OpenAI) to trusted backend functions in production.
+
+## Troubleshooting
+
+- Firestore index errors: see [FIREBASE_INDEXING.md](FIREBASE_INDEXING.md)
+- Google Sign-In setup issues: see [GOOGLE_SIGNIN_SETUP.md](GOOGLE_SIGNIN_SETUP.md)
+- SMS delivery/format issues: see [TWILIO_SMS_GUIDE.md](TWILIO_SMS_GUIDE.md)
 
 ## Contributing
 
-1. Fork the repository
+1. Fork the repo
 2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Security Note
-
-Never commit your `.env` file to version control. It contains sensitive Firebase configuration data.
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Run lint and build checks
+4. Open a pull request with a clear description

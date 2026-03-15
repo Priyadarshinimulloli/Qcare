@@ -1,6 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { fetchTips, fetchUserHabits, toggleTipCompletion } from "../utils/healthTipsApi";
-import { doc } from "firebase/firestore";
+import "./HealthTipPlanner.css";
+
+// Built-in tips shown when Firestore healthTips collection is empty or unreachable
+const BUILTIN_TIPS = [
+  { id: 'bt-1', tip: 'Drink at least 8 glasses of water today to stay hydrated.', category: 'Hydration' },
+  { id: 'bt-2', tip: 'Take a 10-minute walk — even indoors — to improve circulation.', category: 'Exercise' },
+  { id: 'bt-3', tip: 'Eat a fruit or vegetable with every meal for better nutrition.', category: 'Diet' },
+  { id: 'bt-4', tip: 'Practice slow, deep breathing for 3 minutes to reduce stress.', category: 'Mental Health' },
+  { id: 'bt-5', tip: 'Wash your hands thoroughly before meals and after using the restroom.', category: 'Hygiene' },
+  { id: 'bt-6', tip: 'Aim for 7–8 hours of sleep tonight by setting a consistent bedtime.', category: 'Sleep' },
+  { id: 'bt-7', tip: 'Avoid screens 30 minutes before bed to improve sleep quality.', category: 'Sleep' },
+  { id: 'bt-8', tip: 'Stand up and stretch for 2 minutes every hour if seated for long.', category: 'Exercise' },
+];
 
 // Lightweight UI primitives (no external UI lib required) — feel free to replace with your design system
 function Progress({ value }) {
@@ -44,21 +56,35 @@ export default function HealthTipPlanner({ userId: propUserId, category = null }
     setLoading(true);
     setError(null);
 
-    Promise.all([fetchTips(category), fetchUserHabits(userId)])
+    // Fetch tips and user habits independently so one failure doesn't block the other
+    const tipsPromise = fetchTips(category).catch((err) => {
+      console.warn('Could not fetch Firestore tips, using built-in fallback:', err?.message);
+      return []; // will fall back to BUILTIN_TIPS below
+    });
+
+    const habitsPromise = userId
+      ? fetchUserHabits(userId).catch((err) => {
+          console.warn('Could not fetch user habits:', err?.message);
+          return { completedTips: [] };
+        })
+      : Promise.resolve({ completedTips: [] });
+
+    Promise.all([tipsPromise, habitsPromise])
       .then(([fetchedTips, userHabits]) => {
         if (!mounted) return;
-        setTips(fetchedTips || []);
+        // If Firestore has no tips, show built-in ones
+        setTips(fetchedTips.length > 0 ? fetchedTips : BUILTIN_TIPS);
         setCompletedTips(userHabits?.completedTips || []);
       })
       .catch((err) => {
-        console.error("HealthTipPlanner error:", err);
-        if (mounted) setError(err?.message || String(err));
+        if (mounted) {
+          console.error('HealthTipPlanner error:', err);
+          setTips(BUILTIN_TIPS);
+        }
       })
       .finally(() => mounted && setLoading(false));
 
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [userId, category]);
 
   const progress = useMemo(() => {
@@ -67,6 +93,7 @@ export default function HealthTipPlanner({ userId: propUserId, category = null }
   }, [tips, completedTips]);
 
   async function handleToggle(tipId) {
+    if (!userId) return; // guest — no Firestore writes
     try {
       // optimistic update
       const had = completedTips.includes(tipId);
@@ -82,27 +109,40 @@ export default function HealthTipPlanner({ userId: propUserId, category = null }
   }
 
   return (
-    <div style={{ maxWidth: 720, width: "100%", padding: 16 }}>
-      <div style={{ padding: 16, borderRadius: 12, background: "#fff", boxShadow: "0 6px 20px rgba(0,0,0,0.06)" }}>
-        <h2 style={{ margin: 0, marginBottom: 12, color: "#065f46" }}>💡 Health Tips for You</h2>
+    <div className="ht-root">
+      <div className="ht-panel">
+        <div className="ht-header">
+          <div>
+            <div className="ht-title">💡 Health Tips for You</div>
+            <div className="ht-note">Small, actionable tips to improve your daily health.</div>
+          </div>
+          <div className="ht-progress">
+            <Progress value={progress} />
+          </div>
+        </div>
 
         {loading && <p>Loading tips…</p>}
-        {error && <p style={{ color: "#b91c1c" }}>Error: {error}</p>}
+        {error && !loading && (
+          <p style={{ color: '#b91c1c', fontSize: 13 }}>Could not sync with server. Showing built-in tips.</p>
+        )}
 
         {!loading && !tips.length && <p>No tips available right now.</p>}
 
-        {tips.map((tip) => (
-          <div key={tip.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 8 }}>
-            <div style={{ flex: 1, paddingRight: 12 }}>
-              <div style={{ fontSize: 14 }}>{tip.tip}</div>
-              {tip.category && <div style={{ fontSize: 12, color: "#6b7280" }}>{tip.category}</div>}
+        <div className="ht-list">
+          {tips.map((tip) => (
+            <div key={tip.id} className="ht-item">
+              <div className="text">
+                <div style={{ fontSize: 14 }}>{tip.tip}</div>
+                {tip.category && <div className="ht-category">{tip.category}</div>}
+              </div>
+              <div>
+                <Checkbox checked={completedTips.includes(tip.id)} onChange={() => handleToggle(tip.id)} />
+              </div>
             </div>
-            <Checkbox checked={completedTips.includes(tip.id)} onChange={() => handleToggle(tip.id)} />
-          </div>
-        ))}
+          ))}
+        </div>
 
         <div style={{ marginTop: 12 }}>
-          <Progress value={progress} />
           <p style={{ marginTop: 8, color: "#6b7280", fontSize: 13 }}>
             You’ve completed {completedTips.length}/{tips.length} tips today!
           </p>

@@ -291,10 +291,13 @@ const AdminDashboard = () => {
           console.log(`📱 SMS sent to ${currentPatient.name} for status: ${newStatus}`);
         } catch (smsError) {
           console.error('SMS notification failed:', smsError);
+          const statusSmsMsg = smsError.message.includes('sender mismatch') || smsError.message.includes('country mismatch')
+            ? 'Status updated. SMS skipped: sender not configured for this region.'
+            : `Status updated but SMS failed: ${smsError.message}`;
           setNotifications(prev => [...prev, {
             id: Date.now(),
             type: 'warning',
-            message: `Status updated but SMS failed: ${smsError.message}`,
+            message: statusSmsMsg,
             timestamp: new Date().toLocaleTimeString()
           }]);
         }
@@ -512,10 +515,13 @@ const AdminDashboard = () => {
         }]);
       } catch (smsError) {
         console.error('SMS notification failed:', smsError);
+        const escalateSmsMsg = smsError.message.includes('sender mismatch') || smsError.message.includes('country mismatch')
+          ? 'Patient escalated. SMS skipped: sender not configured for this region.'
+          : `Patient escalated but SMS failed: ${smsError.message}`;
         setNotifications(prev => [...prev, {
           id: Date.now(),
           type: 'warning',
-          message: `Patient escalated but SMS notification failed: ${smsError.message}`,
+          message: escalateSmsMsg,
           timestamp: new Date().toLocaleTimeString()
         }]);
       }
@@ -550,10 +556,13 @@ const AdminDashboard = () => {
         timestamp: new Date().toLocaleTimeString()
       }]);
     } catch (error) {
+      const smsErrMsg = error.message.includes('sender mismatch') || error.message.includes('country mismatch')
+        ? 'SMS failed: sender not configured for this region. Set VITE_TWILIO_MESSAGING_SERVICE_SID in .env.'
+        : `SMS failed: ${error.message}`;
       setNotifications(prev => [...prev, {
         id: Date.now(),
-        type: 'error',
-        message: `SMS failed: ${error.message}`,
+        type: 'warning',
+        message: smsErrMsg,
         timestamp: new Date().toLocaleTimeString()
       }]);
     } finally {
@@ -800,21 +809,23 @@ const AdminDashboard = () => {
       {/* Header with Analytics Button */}
       <header className="header">
         <div className="header-content">
-          <div className="logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-            <div className="logo-icon">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="18" y="8" width="4" height="24" fill="#2563eb"/>
-                <rect x="8" y="18" width="24" height="4" fill="#2563eb"/>
-                <circle cx="20" cy="20" r="18" stroke="#2563eb" strokeWidth="2"/>
-              </svg>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+            <div className="logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+              <div className="logo-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="18" y="8" width="4" height="24" fill="#2563eb"/>
+                  <rect x="8" y="18" width="24" height="4" fill="#2563eb"/>
+                  <circle cx="20" cy="20" r="18" stroke="#2563eb" strokeWidth="2"/>
+                </svg>
+              </div>
+              <h1 className="hospital-name">Admin Dashboard</h1>
             </div>
-            <h1 className="hospital-name">Admin Dashboard</h1>
-          </div>
-          
-          <div className="header-actions">
-            <button onClick={() => navigate("/")} className="logout-button">
-              Back to Home
-            </button>
+            
+            <div className="header-actions" style={{ marginLeft: "auto" }}>
+              <button onClick={() => navigate("/")} className="logout-button" style={{ padding: "8px 16px", borderRadius: "4px", backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer", fontWeight: "500" }}>
+                Back to Home
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -1284,9 +1295,8 @@ Available variables: {name}, {queueId}, {hospital}, {department}"
                       </th>
                       <th>Queue ID</th>
                       <th>Patient Name</th>
-                      <th>Priority</th>
                       <th>Position</th>
-                      <th>Wait Time</th>
+                      <th>Symptoms</th>
                       <th>Status</th>
                       <th>Time in Queue</th>
                       <th>Contact</th>
@@ -1315,23 +1325,14 @@ Available variables: {name}, {queueId}, {hospital}, {department}"
                           </div>
                         </td>
                         
-                        <td className="priority-cell">
-                          <div 
-                            className="priority-badge" 
-                            style={{ backgroundColor: patient.priority?.color || '#6b7280' }}
-                          >
-                            {patient.priority?.name || 'Standard'}
-                          </div>
-                          {patient.escalated && <span className="escalated-indicator">🚨</span>}
-                        </td>
-                        
                         <td className="position">
                           {patient.currentPosition || patient.queuePosition || '-'}
                         </td>
                         
-                        <td className="wait-time">
-                          {patient.estimatedWaitTime ? `${patient.estimatedWaitTime} min` : 
-                           patient.currentPosition ? `${(patient.currentPosition - 1) * 10} min` : '-'}
+                        <td className="symptoms">
+                          <div className="symptoms-text" title={patient.symptoms || 'No symptoms recorded'}>
+                            {patient.symptoms || 'Not specified'}
+                          </div>
                         </td>
                         
                         <td className="status">

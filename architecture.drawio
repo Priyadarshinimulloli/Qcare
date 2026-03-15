@@ -1,0 +1,85 @@
+<mxfile host="app.diagrams.net" modified="2026-03-11T10:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="hospital-arch" name="Architecture">
+    <mxGraphModel dx="1420" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="clientBox" value="Client Layer (Browser)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#5C6BC0;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="470" height="470" as="geometry" />
+        </mxCell>
+        <mxCell id="firebaseBox" value="Firebase Backend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#43A047;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="60" width="360" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="collectionsBox" value="Firestore Collections" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFB300;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="330" width="360" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="externalBox" value="External Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#8E24AA;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="180" width="280" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="user" value="Patient / Admin User" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5C6BC0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="spa" value="React + Vite SPA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5C6BC0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="120" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="router" value="React Router + ProtectedRoute" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5C6BC0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="210" width="380" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="components" value="UI Components&#xa;Landing, Login, Register, Home&#xa;AdminDashboard, PatientDashboard, Analytics, HealthTips" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=8;fillColor=#FFFFFF;strokeColor=#5C6BC0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="290" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="services" value="Client Services&#xa;priorityCalculator&#xa;healthTipsApi&#xa;twilioService" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=8;fillColor=#FFFFFF;strokeColor=#5C6BC0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="430" width="380" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="auth" value="Firebase Auth&#xa;Email/Password + Google" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#43A047;" vertex="1" parent="1">
+          <mxGeometry x="590" y="110" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="firestore" value="Cloud Firestore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#43A047;" vertex="1" parent="1">
+          <mxGeometry x="590" y="190" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="Security Rules&#xa;firestore.rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#43A047;" vertex="1" parent="1">
+          <mxGeometry x="750" y="190" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="590" y="380" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c2" value="healthTips" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="750" y="380" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c3" value="userHabits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="590" y="430" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c4" value="appointments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="750" y="430" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c5" value="vitals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="590" y="480" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c6" value="prescriptions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="750" y="480" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c7" value="admin_actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="590" y="530" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c8" value="sms_logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="750" y="530" width="150" height="40" as="geometry" /></mxCell>
+        <mxCell id="c9" value="emergency_broadcasts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB300;" vertex="1" parent="1"><mxGeometry x="670" y="580" width="150" height="40" as="geometry" /></mxCell>
+
+        <mxCell id="twilio" value="Twilio REST API&#xa;SMS Delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8E24AA;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="240" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="user" target="spa"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="spa" target="router"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="router" target="components"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="components" target="services"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e5" value="sign-in / session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="spa" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" value="read/write data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="components" target="firestore"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="rules"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="ec1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c8"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ec9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="1" source="firestore" target="c9"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e8" value="send notifications" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#8E24AA;" edge="1" parent="1" source="services" target="twilio"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" value="delivery status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;endArrow=open;strokeColor=#8E24AA;" edge="1" parent="1" source="twilio" target="c8"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
