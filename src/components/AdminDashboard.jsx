@@ -4,7 +4,6 @@ import {
   collection, 
   query, 
   where, 
-  orderBy, 
   onSnapshot, 
   doc, 
   updateDoc,
@@ -16,6 +15,8 @@ import {
 import { db } from "../firebase";
 import { sortQueueByPriority, PRIORITY_LEVELS, calculateEstimatedWaitTime } from "../utils/priorityCalculator.js";
 import twilioService from "../services/twilioService";
+import { HOSPITALS, DEPARTMENTS } from "../utils/constants";
+import DoctorRoomManager from "./DoctorRoomManager";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -51,25 +52,14 @@ const AdminDashboard = () => {
   const [showSmsPanel, setShowSmsPanel] = useState(false);
   const [customSmsMessage, setCustomSmsMessage] = useState('');
   const [smsRecipients, setSmsRecipients] = useState([]);
+  const [activeTab, setActiveTab] = useState("queue"); // queue, management
+  const [assignedDoctor, setAssignedDoctor] = useState(null);
   
   const unsubscribeRef = useRef(null);
   const refreshIntervalRef = useRef(null);
-
-  const hospitals = [
-    "City Care Hospital",
-    "LifeLine Hospital", 
-    "MediCare Central",
-    "General Hospital"
-  ];
-
-  const departments = [
-    "Cardiology",
-    "Neurology", 
-    "Orthopedics",
-    "Pediatrics",
-    "Dermatology",
-    "General Medicine"
-  ];
+  
+  const hospitals = HOSPITALS;
+  const departments = DEPARTMENTS;
 
   // Database connection monitoring
   useEffect(() => {
@@ -99,6 +89,26 @@ const AdminDashboard = () => {
 
     setLoading(true);
     console.log(`Setting up enhanced monitoring for ${selectedHospital} - ${selectedDepartment}`);
+
+    // Fetch assigned doctor for this department
+    const fetchAssignedDoctor = async () => {
+      if (!selectedDepartment) return;
+      try {
+        const roomQuery = query(
+          collection(db, "doctor_rooms"),
+          where("department", "==", selectedDepartment)
+        );
+        const roomSnap = await getDocs(roomQuery);
+        if (!roomSnap.empty) {
+          setAssignedDoctor(roomSnap.docs[0].data());
+        } else {
+          setAssignedDoctor(null);
+        }
+      } catch (err) {
+        console.error("Error fetching room assignment:", err);
+      }
+    };
+    fetchAssignedDoctor();
 
     // Clean up previous listener
     if (unsubscribeRef.current) {
@@ -281,7 +291,6 @@ const AdminDashboard = () => {
         })
       };
 
-      // Update the patient record in Firestore
       await updateDoc(doc(db, "queues", patientId), updateData);
 
       // Send SMS notification for status changes
@@ -302,6 +311,23 @@ const AdminDashboard = () => {
           }]);
         }
       }
+
+      // Fetch assigned doctor for this department
+      const fetchAssignedDoctor = async () => {
+        if (!selectedDepartment) return;
+        const roomQuery = query(
+          collection(db, "doctor_rooms"),
+          where("department", "==", selectedDepartment)
+        );
+        const roomSnap = await getDocs(roomQuery);
+        if (!roomSnap.empty) {
+          setAssignedDoctor(roomSnap.docs[0].data());
+        } else {
+          setAssignedDoctor(null);
+        }
+      };
+      
+      await fetchAssignedDoctor();
 
       // If patient status changes affect queue order, recalculate positions
       if (['completed', 'called', 'in-progress', 'no-show'].includes(newStatus)) {
@@ -735,8 +761,9 @@ const AdminDashboard = () => {
       const payload = {
         name: patient.name,
         id: patient.customQueueId || patient.id.slice(-6),
-        doctor: patient.doctorName || 'Dr. Rao',
+        doctor: assignedDoctor?.doctorName || 'Dr. Rao',
         hospital: patient.hospital || 'MediCare Central',
+        room: assignedDoctor?.roomNumber || 'Room 3',
         department: patient.department || 'Cardiology',
         contact: patient.contact
       };
@@ -821,7 +848,14 @@ const AdminDashboard = () => {
               <h1 className="hospital-name">Admin Dashboard</h1>
             </div>
             
-            <div className="header-actions" style={{ marginLeft: "auto" }}>
+            <div className="header-actions" style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+              <button 
+                onClick={() => setActiveTab(activeTab === "queue" ? "management" : "queue")} 
+                className="management-button" 
+                style={{ padding: "8px 16px", borderRadius: "4px", backgroundColor: "#10b981", color: "white", border: "none", cursor: "pointer", fontWeight: "500" }}
+              >
+                {activeTab === "queue" ? "Manage Rooms" : "Back to Queue"}
+              </button>
               <button onClick={() => navigate("/")} className="logout-button" style={{ padding: "8px 16px", borderRadius: "4px", backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer", fontWeight: "500" }}>
                 Back to Home
               </button>
@@ -831,7 +865,13 @@ const AdminDashboard = () => {
       </header>
 
       <main className="admin-main">
-        {/* Database Connection Status */}
+        {activeTab === "management" ? (
+          <div style={{ padding: "20px" }}>
+            <DoctorRoomManager />
+          </div>
+        ) : (
+          <>
+            {/* Database Connection Status */}
         <div className="connection-status">
           <div className={`status-indicator ${connectionStatus.status}`}>
             <div className="status-light"></div>
@@ -1443,10 +1483,12 @@ Available variables: {name}, {queueId}, {hospital}, {department}"
                   </tbody>
                 </table>
               </div>
-            )}
+            ) }
           </div>
-        )}
-      </main>
+        ) }
+        </>
+      ) }
+    </main>
     </div>
   );
 };

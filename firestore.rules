@@ -45,6 +45,10 @@ service cloud.firestore {
       allow read, create, update, delete: if isSignedIn();
     }
 
+    match /doctor_rooms/{docId} {
+      allow read, write: if true;
+    }
+
     // Admins collection: only the admin doc owner can read their own record.
     // Write access requires Firebase Admin SDK (server-side only).
     match /admins/{uid} {
