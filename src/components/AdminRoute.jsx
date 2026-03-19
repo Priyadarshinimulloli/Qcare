@@ -1,3 +1,7 @@
+import React from 'react';
+
+export default function AdminRoute({ children }) {
+  // Bypassing all admin checks as requested for direct access
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
