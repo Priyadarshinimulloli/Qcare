@@ -114,7 +114,7 @@ npm run dev
 
 Vite default URL:
 
-- http://localhost:5173
+- <http://localhost:5173>
 
 ## Available Scripts
 
@@ -126,11 +126,33 @@ Vite default URL:
 ## Firebase Setup Checklist
 
 1. Create/select a Firebase project.
-2. Enable Authentication providers:
+
+1. Enable Authentication providers:
+
 - Email/Password
 - Google (optional, if using Google Sign-In)
-3. Enable Cloud Firestore.
-4. Deploy/update Firestore rules from [firestore.rules](firestore.rules).
+
+1. Enable Cloud Firestore.
+
+1. Deploy/update Firestore rules from [firestore.rules](firestore.rules).
+
+### Admin Access Assignment
+
+Admin access is checked from the `admins` collection and now supports either document ID format:
+
+- Firebase Auth UID (recommended)
+- Lowercased email address (allowlist style)
+
+Create one of these Firestore documents and set:
+
+- `isAdmin: true`
+
+Examples:
+
+- `admins/{uid}` -> `{ isAdmin: true }`
+- `admins/{email-lowercase}` -> `{ isAdmin: true }`
+
+If you use email-based assignment, store the document ID exactly as the user email used in Firebase Auth.
 
 For provider details, see:
 

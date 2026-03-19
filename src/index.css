@@ -1,24 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+
 :root {
-  /* Medical-themed color palette */
-  --primary-blue: #2563eb;
-  --secondary-blue: #1e40af;
-  --light-blue: #eff6ff;
-  --accent-blue: #3b82f6;
+  --primary-blue: #0f766e;
+  --secondary-blue: #115e59;
+  --light-blue: #e6fffb;
+  --accent-blue: #14b8a6;
   --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-light: #9ca3af;
-  --background-primary: #ffffff;
-  --background-secondary: #f8fafc;
-  --border-color: #e5e7eb;
-  --success-green: #10b981;
-  --warning-red: #dc2626;
-  
-  /* Typography */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --text-secondary: #4b5563;
+  --text-light: #6b7280;
+  --background-primary: #fffdf7;
+  --background-secondary: #fff7ed;
+  --border-color: #fed7aa;
+  --success-green: #0ea5a4;
+  --warning-red: #ea580c;
+  --surface-elevated: rgba(255, 255, 255, 0.82);
+  --surface-border: rgba(255, 255, 255, 0.66);
+  --surface-shadow: 0 16px 42px rgba(15, 23, 42, 0.11);
+
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   line-height: 1.6;
   font-weight: 400;
-  
-  /* Enhanced text rendering */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -36,8 +37,13 @@ body {
   margin: 0;
   min-height: 100vh;
   background-color: var(--background-primary);
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(20, 184, 166, 0.23), transparent 38%),
+    radial-gradient(circle at 88% 3%, rgba(251, 146, 60, 0.22), transparent 42%),
+    radial-gradient(circle at 52% 100%, rgba(59, 130, 246, 0.14), transparent 40%);
   color: var(--text-primary);
   font-size: 16px;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 }
 
 #root {
@@ -47,9 +53,11 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--text-primary);
+  letter-spacing: 0.01em;
 }
 
 h1 {
@@ -95,6 +103,12 @@ button {
   background: none;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 button:focus-visible {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
 import { 
   collection, 
   query, 
@@ -13,12 +14,13 @@ import {
   addDoc,
   deleteDoc
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import { sortQueueByPriority, PRIORITY_LEVELS, calculateEstimatedWaitTime } from "../utils/priorityCalculator.js";
 import twilioService from "../services/twilioService";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const adminIdentity = auth.currentUser?.displayName || auth.currentUser?.email || "Administrator";
   const [selectedHospital, setSelectedHospital] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [queueList, setQueueList] = useState([]);
@@ -804,6 +806,20 @@ const AdminDashboard = () => {
     return date.toLocaleTimeString();
   };
 
+  const handleAdminSignOut = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setNotifications((prev) => [...prev, {
+        id: Date.now(),
+        type: "error",
+        message: `Failed to sign out: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    }
+  };
+
   return (
     <div className="admin-page">
       {/* Header with Analytics Button */}
@@ -822,13 +838,27 @@ const AdminDashboard = () => {
             </div>
             
             <div className="header-actions" style={{ marginLeft: "auto" }}>
-              <button onClick={() => navigate("/")} className="logout-button" style={{ padding: "8px 16px", borderRadius: "4px", backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer", fontWeight: "500" }}>
-                Back to Home
+              <span className="admin-identity-pill">Signed in: {adminIdentity}</span>
+              <button onClick={() => navigate("/")} className="analytics-button admin-header-btn" type="button">
+                Home
+              </button>
+              <button onClick={() => navigate("/analytics")} className="analytics-button admin-header-btn" type="button">
+                Analytics
+              </button>
+              <button onClick={handleAdminSignOut} className="logout-button admin-header-btn" type="button">
+                Sign Out
               </button>
             </div>
           </div>
         </div>
       </header>
+
+      <section className="admin-command-banner">
+        <div className="admin-command-content">
+          <h2>Operations Command Center</h2>
+          <p>Manage live queues, monitor departments, and coordinate patient communication in real time.</p>
+        </div>
+      </section>
 
       <main className="admin-main">
         {/* Database Connection Status */}

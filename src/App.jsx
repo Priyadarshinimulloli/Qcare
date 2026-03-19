@@ -16,13 +16,14 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Login mode="patient" />} />
+      <Route path="/admin-login" element={<Login mode="admin" />} />
       <Route path="/register" element={<Register />} />
       <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/patient" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
       <Route path="/health-tips" element={<ProtectedRoute><HealthTips /></ProtectedRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
     </Routes>
   );
 }
