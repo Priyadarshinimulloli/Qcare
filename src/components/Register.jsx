@@ -40,7 +40,8 @@ const Register = () => {
     }
   };
 
-  const getGoogleAuthErrorMessage = (code) => {
+  const getGoogleAuthErrorMessage = (error) => {
+    const code = error?.code;
     switch (code) {
       case "auth/account-exists-with-different-credential":
         return "An account already exists with this email. Please sign in using your existing method.";
@@ -48,14 +49,21 @@ const Register = () => {
         return "Google sign-up was cancelled. Please try again.";
       case "auth/popup-blocked":
         return "Browser blocked the Google popup. Allow popups for this site and try again.";
+      case "auth/cancelled-popup-request":
+        return "Google sign-up popup was interrupted. Please try again.";
       case "auth/operation-not-allowed":
         return "Google sign-in is not enabled in Firebase Authentication. Enable Google provider in Firebase Console.";
+      case "auth/operation-not-supported-in-this-environment":
+      case "auth/web-storage-unsupported":
+        return "This browser environment does not support Firebase popup auth. Try a regular browser window and enable cookies/storage.";
       case "auth/unauthorized-domain":
         return "This domain is not authorized for Google sign-in. Add it in Firebase Authentication authorized domains.";
       case "auth/network-request-failed":
         return "Network error during Google sign-up. Check your internet and try again.";
+      case "auth/internal-error":
+        return "Firebase returned an internal auth error. Check Firebase Console status and OAuth provider setup.";
       default:
-        return "Google sign-up failed. Please try again.";
+        return `Google sign-up failed. ${code ? `(${code})` : "(unknown error)"}`;
     }
   };
 
@@ -82,7 +90,7 @@ const Register = () => {
       } catch (err) {
         if (mounted) {
           console.error("Google redirect completion error:", err);
-          setError(getGoogleAuthErrorMessage(err.code));
+          setError(getGoogleAuthErrorMessage(err));
         }
       } finally {
         if (mounted) setLoading(false);
@@ -169,12 +177,12 @@ const Register = () => {
           return;
         } catch (redirectErr) {
           console.error("Google redirect sign-up error:", redirectErr);
-          setError(getGoogleAuthErrorMessage(redirectErr.code));
+          setError(getGoogleAuthErrorMessage(redirectErr));
           return;
         }
       }
 
-      setError(getGoogleAuthErrorMessage(err.code));
+      setError(getGoogleAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,7 @@ function LandingPage() {
   };
 
   const handleAdminLogin = () => {
-    navigate('/admin');
+    navigate('/admin-login');
   };
 
   return (
