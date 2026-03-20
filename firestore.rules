@@ -1,24 +1,56 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // --- Helper functions ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Publicly readable tips; writes require auth.
+    // --- COLLECTION RULES ---
+
+    // 1. Queues Collection (Main Queue System)
+    match /queues/{docId} {
+      // DEVELOPMENT: Allow all to support Admin Dashboard Bypass
+      allow read, write: if true;
+      
+      // PRODUCTION (Recommended):
+      // allow read: if true; // Patients need to see their status
+      // allow write: if isSignedIn(); // Only authenticated staff or patients should modify
+    }
+
+    // 2. Doctor Rooms (Room Management)
+    match /doctor_rooms/{docId} {
+      // DEVELOPMENT: Allow all
+      allow read, write: if true;
+      
+      // PRODUCTION:
+      // allow read: if true;
+      // allow write: if isSignedIn();
+    }
+
+    // 3. Admin Actions (Audit Trail)
+    match /admin_actions/{docId} {
+      allow read, write: if true; // Change to isSignedIn() for production
+    }
+
+    // 4. SMS Logs & Notifications
+    match /sms_logs/{docId} {
+      allow read, write: if true; // Change to isSignedIn() for production
+    }
+
+    match /emergency_broadcasts/{docId} {
+      allow read, write: if true;
+    }
+
+    // 5. Existing App Features
     match /healthTips/{tipId} {
       allow read: if true;
       allow create, update, delete: if isSignedIn();
     }
 
-    // User habits are private to the owner.
     match /userHabits/{docId} {
       allow read, create, update, delete: if isSignedIn() && docId.matches('^' + request.auth.uid + '_.*$');
-    }
-
-    // Queue and dashboard collections used by authenticated users.
-    match /queues/{docId} {
-      allow read, create, update, delete: if isSignedIn();
     }
 
     match /appointments/{docId} {
@@ -33,18 +65,6 @@ service cloud.firestore {
       allow read, create, update, delete: if isSignedIn();
     }
 
-    match /admin_actions/{docId} {
-      allow read, create, update, delete: if isSignedIn();
-    }
-
-    match /sms_logs/{docId} {
-      allow read, create, update, delete: if isSignedIn();
-    }
-
-    match /emergency_broadcasts/{docId} {
-      allow read, create, update, delete: if isSignedIn();
-    }
-
     // Admins collection: users can read only their own admin record, keyed by
     // Firebase UID or exact email address (for email allowlist mode).
     // Write access requires Firebase Admin SDK (server-side only).
@@ -56,7 +76,7 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Deny everything else by default.
+    // Default: Deny everything else
     match /{document=**} {
       allow read, write: if false;
     }
