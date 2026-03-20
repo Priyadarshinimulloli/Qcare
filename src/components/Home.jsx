@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, serverTimestamp, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import {
@@ -34,6 +34,7 @@ const Home = () => {
   const [notifications, setNotifications] = useState([]);
   const [customQueueId, setCustomQueueId] = useState(null);
   const [phoneValidation, setPhoneValidation] = useState({ isValid: true, message: '' });
+  const [canViewAnalytics, setCanViewAnalytics] = useState(false);
 
   const avgTimePerPatient = 10; // minutes per patient
 
@@ -86,6 +87,47 @@ const Home = () => {
       navigate("/login");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAdminAccess = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        if (isMounted) setCanViewAnalytics(false);
+        return;
+      }
+
+      try {
+        const normalizedEmail = currentUser.email?.trim().toLowerCase();
+        const adminDocIds = [currentUser.uid, normalizedEmail].filter(Boolean);
+
+        let hasAdminAccess = false;
+        for (const adminDocId of adminDocIds) {
+          const adminSnap = await getDoc(doc(db, "admins", adminDocId));
+          if (adminSnap.exists() && adminSnap.data()?.isAdmin === true) {
+            hasAdminAccess = true;
+            break;
+          }
+        }
+
+        if (isMounted) {
+          setCanViewAnalytics(hasAdminAccess);
+        }
+      } catch (error) {
+        console.error("Failed to verify admin access for analytics:", error);
+        if (isMounted) {
+          setCanViewAnalytics(false);
+        }
+      }
+    };
+
+    loadAdminAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Real-time queue monitoring with enhanced error handling and reconnection
   useEffect(() => {
@@ -376,39 +418,14 @@ Redirecting to your dashboard...`);
             </div>
             <h1 className="hospital-name">MediCare Hospital</h1>
           </div>
-          <div className="header-actions">
-            <button 
-              onClick={() => navigate('/analytics')} 
-              className="analytics-button"
-              title="View Analytics Dashboard"
-            >
-              📊 Analytics
-            </button>
-            <button onClick={handleLogout} className="logout-button">
-              Logout
-            </button>
-          </div>
         </div>
       </header>
 
       <main className="home-main">
-        <div className="home-container">
-          {/* Welcome Card */}
-          <div className="welcome-card">
-            <div className="welcome-content">
-              <div className="welcome-icon">🏥</div>
-              <h2>Welcome to Patient Portal</h2>
-              <p>Book your appointment and join the hospital queue easily</p>
-            </div>
-          </div>
-
-          {/* Health Tips Card */}
-          <div className="health-tips-card">
-            <HealthTipPlanner userId={auth?.currentUser?.uid} />
-          </div>
-
-          {/* Queue Booking Card */}
-          <div className="queue-booking-card">
+        <div className="home-layout">
+          <section className="home-primary-column">
+            {/* Queue Booking Card */}
+            <div className="queue-booking-card">
             <div className="card-header">
               <div className="header-icon">📋</div>
               <div className="header-content">
@@ -553,10 +570,10 @@ Redirecting to your dashboard...`);
                 </button>
               </div>
             </form>
-          </div> {/* Close queue-booking-card */}
+            </div>
 
-          {queueId && (
-            <div className="queue-details">
+            {queueId && (
+              <div className="queue-details">
               <div className="queue-details-header">
                 <h3>Your Queue Details</h3>
                 <div className="queue-status-container">
@@ -654,9 +671,41 @@ Redirecting to your dashboard...`);
                   {realTimeUpdates ? '⏸️ Pause Updates' : '▶️ Resume Updates'}
                 </button>
               </div>
+              </div>
+            )}
+          </section>
+
+          <aside className="home-secondary-column">
+            <div className="welcome-card home-card-compact">
+              <div className="welcome-content">
+                <div className="welcome-icon">🏥</div>
+                <h2>Patient Portal</h2>
+                <p>Everything you need before, during, and after your appointment.</p>
+              </div>
             </div>
-          )}
-        </div> {/* Close home-container */}
+
+            <div className="home-quick-actions-card">
+              <h3>Quick Actions</h3>
+              <div className="home-quick-actions-grid">
+                <button type="button" className="analytics-button" onClick={() => navigate('/health-tips')}>
+                  💡 Health Tips
+                </button>
+                {canViewAnalytics && (
+                  <button type="button" className="analytics-button" onClick={() => navigate('/analytics')}>
+                    📊 Analytics
+                  </button>
+                )}
+                <button type="button" className="logout-button" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
+
+            <div className="health-tips-card">
+              <HealthTipPlanner userId={auth?.currentUser?.uid} />
+            </div>
+          </aside>
+        </div>
       </main>
     </div>
   );

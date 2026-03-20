@@ -65,6 +65,9 @@ service cloud.firestore {
       allow read, create, update, delete: if isSignedIn();
     }
 
+    // Admins collection: users can read only their own admin record, keyed by
+    // Firebase UID or exact email address (for email allowlist mode).
+    // Write access requires Firebase Admin SDK (server-side only).
     match /admins/{uid} {
       allow read: if isSignedIn() && (
         request.auth.uid == uid ||

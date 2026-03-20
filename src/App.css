@@ -787,6 +787,86 @@
   letter-spacing: 0.5px;
 }
 
+/* Admin route guard */
+.admin-guard-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.admin-guard-spinner {
+  width: 46px;
+  height: 46px;
+  border: 4px solid #dbeafe;
+  border-top: 4px solid #1d4ed8;
+  border-radius: 999px;
+  animation: admin-spin 0.85s linear infinite;
+}
+
+.admin-guard-text {
+  margin: 0;
+  color: #334155;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Admin dashboard polish */
+.admin-command-banner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 1.25rem auto 0;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+.admin-command-content {
+  padding: 1.1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: linear-gradient(120deg, #e0f2fe 0%, #f1f5f9 55%, #dbeafe 100%);
+}
+
+.admin-command-content h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.2rem;
+}
+
+.admin-command-content p {
+  margin: 0.35rem 0 0;
+  color: #334155;
+  font-size: 0.92rem;
+}
+
+.admin-page .header-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-identity-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e1b4b;
+  border: 1px solid #c7d2fe;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.8rem;
+  font-weight: 600;
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;
@@ -1758,6 +1838,7 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
+  margin: 0;
   margin-bottom: 0.25rem;
 }
 
@@ -3405,3 +3486,439 @@
     width: 100%;
   }
 }
+
+/* 2026 UX refresh: warm-clinical editorial look */
+.landing-page,
+.login-page,
+.register-page,
+.home-page,
+.admin-page,
+.analytics-page {
+  position: relative;
+  background:
+    linear-gradient(140deg, rgba(20, 184, 166, 0.14), transparent 45%),
+    linear-gradient(320deg, rgba(249, 115, 22, 0.11), transparent 55%),
+    var(--background-primary);
+}
+
+.landing-page::before,
+.login-page::before,
+.register-page::before,
+.home-page::before,
+.admin-page::before,
+.analytics-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(20, 184, 166, 0.11), transparent 34%),
+    radial-gradient(circle at 82% 7%, rgba(251, 146, 60, 0.13), transparent 38%);
+}
+
+.header,
+.welcome-card,
+.health-tips-card,
+.queue-booking-card,
+.queue-details,
+.login-container,
+.register-container,
+.admin-controls,
+.queue-table-container,
+.analytics-main,
+.empty-queue {
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  background: rgba(255, 253, 247, 0.86);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.hospital-name {
+  letter-spacing: 0.01em;
+}
+
+.main-content,
+.home-main,
+.login-main,
+.register-main,
+.admin-main,
+.analytics-main {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-card,
+.health-tips-card,
+.queue-booking-card,
+.queue-details,
+.login-container,
+.register-container,
+.admin-controls,
+.queue-table-container,
+.empty-queue,
+.stat-card,
+.feature-card,
+.nav-button,
+.time-range-select,
+.export-button,
+.analytics-button,
+.logout-button {
+  border-radius: 18px;
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--surface-shadow);
+}
+
+.login-container,
+.register-container,
+.queue-booking-card,
+.health-tips-card,
+.welcome-card,
+.admin-controls,
+.queue-table-container,
+.empty-queue {
+  background: var(--surface-elevated);
+  backdrop-filter: blur(8px);
+}
+
+.welcome-card,
+.health-tips-card,
+.queue-booking-card,
+.queue-details {
+  animation: rise-in 520ms ease both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.nav-button {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+}
+
+.nav-button::after {
+  content: '';
+  position: absolute;
+  inset: -140% -40%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.26) 50%, transparent 65%);
+  transform: rotate(12deg);
+  transition: transform 520ms ease;
+}
+
+.nav-button:hover::after {
+  transform: translateX(26%) rotate(12deg);
+}
+
+.patient-button {
+  background: linear-gradient(145deg, #0f766e 0%, #14b8a6 100%);
+}
+
+.admin-button {
+  background: linear-gradient(145deg, #9a3412 0%, #ea580c 100%);
+}
+
+.queue-form .form-group input,
+.queue-form .form-group select,
+.queue-form .form-group textarea,
+.form-group input,
+.time-range-select {
+  border-radius: 12px;
+  border: 1px solid #fdba74;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.queue-form .form-group input:focus,
+.queue-form .form-group select:focus,
+.queue-form .form-group textarea:focus,
+.form-group input:focus,
+.time-range-select:focus {
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+  border-color: #0f766e;
+}
+
+.submit-button,
+.login-button,
+.register-button,
+.export-button,
+.analytics-button {
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.submit-button,
+.login-button,
+.analytics-button {
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+}
+
+.register-button,
+.export-button {
+  background: linear-gradient(135deg, #c2410c 0%, #f97316 100%);
+}
+
+.logout-button {
+  background: linear-gradient(135deg, #9a3412 0%, #ea580c 100%);
+  color: #fff;
+}
+
+.submit-button:hover:not(:disabled),
+.login-button:hover:not(:disabled),
+.register-button:hover:not(:disabled),
+.analytics-button:hover,
+.export-button:hover,
+.logout-button:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.08);
+}
+
+.queue-status {
+  border-radius: 999px;
+}
+
+.notification {
+  border-radius: 14px;
+}
+
+@media (max-width: 768px) {
+  .welcome-card,
+  .health-tips-card,
+  .queue-booking-card,
+  .queue-details,
+  .login-container,
+  .register-container {
+    border-radius: 14px;
+  }
+
+  .header-content {
+    padding: 0 1rem;
+  }
+}
+
+.landing-journey-strip {
+  width: 100%;
+  max-width: 860px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin: 0 0 1.75rem;
+}
+
+.journey-step {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
+}
+
+.journey-step p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #1f2937;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.landing-assurance {
+  width: 100%;
+  max-width: 980px;
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.assurance-card {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.assurance-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.assurance-card p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.auth-guidance {
+  margin: 0 0 1.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 184, 166, 0.25);
+  background: rgba(236, 253, 245, 0.78);
+}
+
+.auth-guidance-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.auth-guidance-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.auth-guidance-list li {
+  color: #374151;
+  font-size: 0.85rem;
+}
+
+.home-flow-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.flow-pill {
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(14, 165, 164, 0.28);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.flow-pill span {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: #0f766e;
+  margin-bottom: 0.25rem;
+}
+
+.flow-pill p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .landing-journey-strip,
+  .landing-assurance,
+  .home-flow-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.home-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.home-primary-column,
+.home-secondary-column {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.home-card-compact .welcome-content {
+  text-align: left;
+}
+
+.home-card-compact .welcome-icon {
+  margin-bottom: 0.6rem;
+}
+
+.home-card-compact h2 {
+  font-size: 1.35rem;
+}
+
+.home-card-compact p {
+  font-size: 0.95rem;
+}
+
+.home-quick-actions-card {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--surface-shadow);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.home-quick-actions-card h3 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+}
+
+.home-quick-actions-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.home-quick-actions-grid .analytics-button,
+.home-quick-actions-grid .logout-button {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.admin-header-btn {
+  padding: 0.48rem 0.92rem;
+  border-radius: 10px;
+  font-size: 0.83rem;
+}
+
+@media (max-width: 1100px) {
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-main {
+    padding: 1rem;
+  }
+
+  .home-layout {
+    gap: 0.9rem;
+  }
+
+  .home-primary-column,
+  .home-secondary-column {
+    gap: 0.9rem;
+  }
+}
+

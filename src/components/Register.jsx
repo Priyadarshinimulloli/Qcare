@@ -217,6 +217,15 @@ const Register = () => {
             <h2>Create Patient Account</h2>
             <p>Join MediCare Hospital to access your personalized patient portal</p>
           </div>
+
+          <div className="auth-guidance" role="note" aria-label="Registration guidance">
+            <p className="auth-guidance-title">What you get after sign up</p>
+            <ul className="auth-guidance-list">
+              <li>Book queue slots without waiting at reception.</li>
+              <li>Track appointment status and estimated wait time.</li>
+              <li>Access personalized health tips in one place.</li>
+            </ul>
+          </div>
           
           <form onSubmit={handleRegister} className="register-form">
             <div className="form-row">

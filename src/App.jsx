@@ -23,7 +23,7 @@ function App() {
       <Route path="/patient" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
       <Route path="/health-tips" element={<ProtectedRoute><HealthTips /></ProtectedRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-      <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
     </Routes>
   );
 }

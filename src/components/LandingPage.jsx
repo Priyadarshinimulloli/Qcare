@@ -40,6 +40,21 @@ function LandingPage() {
           </p>
         </div>
 
+        <div className="landing-journey-strip" aria-label="How it works">
+          <div className="journey-step">
+            <span className="step-index">1</span>
+            <p>Sign in as patient or admin</p>
+          </div>
+          <div className="journey-step">
+            <span className="step-index">2</span>
+            <p>Book or manage queue</p>
+          </div>
+          <div className="journey-step">
+            <span className="step-index">3</span>
+            <p>Track updates in real time</p>
+          </div>
+        </div>
+
         <div className="navigation-buttons">
           <button 
             className="nav-button patient-button"
@@ -80,6 +95,21 @@ function LandingPage() {
             </div>
           </button>
         </div>
+
+        <section className="landing-assurance" aria-label="Service promises">
+          <div className="assurance-card">
+            <h3>Faster Queue Clarity</h3>
+            <p>View queue position and wait-time estimates instantly.</p>
+          </div>
+          <div className="assurance-card">
+            <h3>Reliable Notifications</h3>
+            <p>Stay informed with live status changes and alerts.</p>
+          </div>
+          <div className="assurance-card">
+            <h3>Patient-Centered Experience</h3>
+            <p>Simple forms, clear steps, and reduced waiting confusion.</p>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}

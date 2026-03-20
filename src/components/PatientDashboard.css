@@ -1,8 +1,8 @@
 .pd-root {
   padding: 20px;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: transparent;
   min-height: 100vh;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   color: #0f172a;
 }
 
@@ -12,10 +12,10 @@
   align-items: center;
   gap: 12px;
   padding: 18px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #0ea5a4 0%, #2563eb 100%);
+  border-radius: 18px;
+  background: linear-gradient(120deg, #0f766e 0%, #14b8a6 55%, #0ea5e9 100%);
   color: white;
-  box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
 }
 
 .pd-header .profile {
@@ -27,7 +27,7 @@
 .pd-avatar {
   width: 56px;
   height: 56px;
-  border-radius: 10px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,9 +44,9 @@
 }
 
 .btn-primary {
-  background: linear-gradient(90deg,#06b6d4,#2563eb);
+  background: linear-gradient(90deg, #f97316, #ea580c);
   color: white;
-  box-shadow: 0 6px 18px rgba(37,99,235,0.18);
+  box-shadow: 0 8px 22px rgba(249, 115, 22, 0.25);
 }
 
 .btn-ghost {
@@ -64,10 +64,12 @@
 }
 
 .pd-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.84);
   padding: 14px;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(15,23,42,0.06);
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -132,10 +134,11 @@
 
 .pd-status-card {
   margin-top: 18px;
-  background: #e6f6fb; /* soft blue */
-  border-radius: 8px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.78), rgba(255, 245, 238, 0.92));
+  border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.25);
 }
 
 .pd-stats-row {
@@ -148,11 +151,12 @@
 }
 
 .pd-stat {
-  background: white;
+  background: rgba(255, 255, 255, 0.86);
   padding: 18px 14px;
-  border-radius: 8px;
+  border-radius: 14px;
   width: 220px;
-  box-shadow: 0 4px 12px rgba(15,23,42,0.04);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -166,6 +170,12 @@
 .pd-doctor-line { margin-top: 12px; color: #0b5; display:flex; align-items:center; gap:10px; justify-content:center; padding-top:12px; border-top:1px solid rgba(255,255,255,0.5); }
 .pd-doctor-line .doc-text { color:#0b5; }
 .pd-footer-note { margin-top: 18px; color: #475569; font-size:14px; }
+
+.pd-queue-item {
+  border-radius: 14px;
+  border: 1px solid rgba(20, 184, 166, 0.15);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
 
 @media (max-width:760px) {
   .pd-stats-row { flex-direction: column; gap: 10px; }
