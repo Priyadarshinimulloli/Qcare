@@ -70,9 +70,9 @@ const Register = () => {
   const completeGoogleRedirectIfNeeded = async () => {
     const redirectResult = await getRedirectResult(auth);
     if (redirectResult?.user) {
-      setSuccess("Account created successfully with Google! Redirecting to patient portal...");
+      setSuccess("Account created successfully with Google! Redirecting to home...");
       setTimeout(() => {
-        navigate("/patient", { replace: true });
+        navigate("/home", { replace: true });
       }, 1200);
       return true;
     }
@@ -138,10 +138,10 @@ const Register = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
       console.log("Registered user:", userCredential.user);
-      setSuccess("Registration successful! Redirecting to patient portal...");
-      // Redirect to patient dashboard after successful registration
+      setSuccess("Registration successful! Redirecting to home...");
+      // Redirect to home after successful registration
       setTimeout(() => {
-        navigate("/patient", { replace: true });
+        navigate("/home", { replace: true });
       }, 1200);
     } catch (err) {
       console.error("Registration error:", err);
@@ -164,10 +164,10 @@ const Register = () => {
 
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Google sign-up successful:", result.user);
-      setSuccess("Account created successfully with Google! Redirecting to patient portal...");
-      // Redirect to patient dashboard after Google sign-up
+      setSuccess("Account created successfully with Google! Redirecting to home...");
+      // Redirect to home after Google sign-up
       setTimeout(() => {
-        navigate("/patient", { replace: true });
+        navigate("/home", { replace: true });
       }, 1200);
     } catch (err) {
       console.error("Google sign-up error:", err);

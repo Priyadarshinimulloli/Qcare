@@ -872,9 +872,6 @@ const AdminDashboard = () => {
               >
                 {activeTab === "queue" ? "Manage Rooms" : "Back to Queue"}
               </button>
-              <button onClick={() => navigate("/")} className="logout-button" style={{ padding: "8px 16px", borderRadius: "4px", backgroundColor: "#2563eb", color: "white", border: "none", cursor: "pointer", fontWeight: "500" }}>
-                Back to Home
-            <div className="header-actions" style={{ marginLeft: "auto" }}>
               <span className="admin-identity-pill">Signed in: {adminIdentity}</span>
               <button onClick={() => navigate("/")} className="analytics-button admin-header-btn" type="button">
                 Home

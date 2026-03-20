@@ -202,10 +202,6 @@ const Login = ({ mode = "patient" }) => {
       if (await completeGoogleRedirectIfNeeded()) {
         return;
       }
-      await signInWithPopup(auth, googleProvider);
-      navigate("/home", { replace: true });
-    } catch (err) {
-      setError("Google sign-in failed. Please try again.");
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Google sign-in successful:", result.user);
       await validateRoleAndNavigate(result.user);
@@ -316,7 +312,6 @@ const Login = ({ mode = "patient" }) => {
           </form>
 
           <div className="login-footer">
-            <p>Don't have an account? <Link to="/register">Register here</Link></p>
             {!isAdminMode && (
               <p>Don't have an account?{" "}
                 <Link to="/register" className="register-link">

@@ -389,11 +389,11 @@ Priority: ${priority.name}
 Position: ${calculatedPosition}
 Estimated wait: ${calculatedWaitTime} minutes
 
-Redirecting to your dashboard...`);
+Staying on home...`);
 
-      // Redirect to patient dashboard after successful queue creation
+      // Stay on home after successful queue creation
       setTimeout(() => {
-        navigate("/patient");
+        navigate("/home");
       }, 1500); // Small delay to show success message
 
     } catch (err) {
@@ -417,6 +417,11 @@ Redirecting to your dashboard...`);
               </svg>
             </div>
             <h1 className="hospital-name">MediCare Hospital</h1>
+          </div>
+          <div className="header-actions" style={{ marginLeft: "auto" }}>
+            <button type="button" className="logout-button" onClick={handleLogout}>
+              Logout
+            </button>
           </div>
         </div>
       </header>
